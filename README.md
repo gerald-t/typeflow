@@ -1,6 +1,6 @@
 # TypeFlow
 
-A simple adaptive typing-practice website built with PHP, CSS and vanilla JavaScript.
+A simple adaptive typing-practice website built with HTML, CSS and vanilla JavaScript.
 
 ## Features
 
@@ -14,7 +14,7 @@ A simple adaptive typing-practice website built with PHP, CSS and vanilla JavaSc
 
 ## Project structure
 
-- index.php — main website page
+- index.html — main website page
 - assets/css/style.css — page styling
 - assets/js/app.js — typing test and browser-side features
 - assets/images/ — images used by the website, when needed
@@ -24,9 +24,11 @@ A simple adaptive typing-practice website built with PHP, CSS and vanilla JavaSc
 
 1. Clone this repository into C:\\xampp\\htdocs\\typeflow.
 2. Start Apache in the XAMPP Control Panel.
-3. Open http://localhost/typeflow/ in your browser.
+3. Open http://localhost/typeflow/ in your browser. Apache will serve index.html automatically.
 
-MySQL and user accounts are not required. Progress and settings are stored in the current browser using localStorage, so they stay on that browser and device.
+This is a static website. PHP and MySQL are not required. Progress and settings are stored in the current browser using localStorage, so they stay on that browser and device.
+
+You can also open index.html directly in a modern browser, although using XAMPP is recommended for a consistent local setup.
 
 ## Development
 
