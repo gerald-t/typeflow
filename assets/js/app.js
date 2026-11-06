@@ -152,8 +152,6 @@
     keyboard.hidden = !event.target.checked;
   });
   keyboard.hidden = !$('#keyboard-toggle').checked;
-  $('#sound-toggle').checked = localStorage.getItem('typeflow-sound') === 'true';
-  $('#sound-toggle').addEventListener('change', event => localStorage.setItem('typeflow-sound', String(event.target.checked)));
   renderProgress();
   reset(true);
   input.focus({preventScroll:true});
