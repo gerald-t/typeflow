@@ -35,6 +35,15 @@
           <span class="muted">Complete the passage at your own pace</span>
         </div>
 
+        <div class="letter-learning">
+          <div class="letter-learning-heading">
+            <strong id="letter-count">5 / 26 LETTERS UNLOCKED</strong>
+            <span id="next-letter">Next letter: T</span>
+          </div>
+          <div class="letter-chips" id="letter-chips" aria-label="Letter unlock progression"></div>
+          <p class="letter-learning-note" id="letter-note">Start with N, E, I, A and R. Reach 90% accuracy with enough practice on every active letter to unlock the next one.</p>
+        </div>
+
         <div class="stats-row" aria-live="polite">
           <div class="stat"><span class="stat-label">WPM</span><strong id="wpm">0</strong></div>
           <div class="stat"><span class="stat-label">ACCURACY</span><strong id="accuracy">100<span class="unit">%</span></strong></div>
@@ -46,18 +55,82 @@
           <div class="typing-hint" id="typing-hint">start typing to begin · press <kbd>Tab</kbd> to restart</div>
         </div>
 
-        <div class="keyboard" id="keyboard" aria-label="Virtual keyboard">
-          <div class="key-row">
-            <span data-key="q">q</span><span data-key="w">w</span><span data-key="e">e</span><span data-key="r">r</span><span data-key="t">t</span><span data-key="y">y</span><span data-key="u">u</span><span data-key="i">i</span><span data-key="o">o</span><span data-key="p">p</span>
+        <div class="keyboard-wrap">
+          <div class="keyboard-legend" aria-label="Finger colour guide">
+            <span><i class="finger-swatch finger-pinky"></i>Pinky</span>
+            <span><i class="finger-swatch finger-ring"></i>Ring</span>
+            <span><i class="finger-swatch finger-middle"></i>Middle</span>
+            <span><i class="finger-swatch finger-index"></i>Index</span>
           </div>
-          <div class="key-row">
-            <span data-key="a">a</span><span data-key="s">s</span><span data-key="d">d</span><span data-key="f">f</span><span data-key="g">g</span><span data-key="h">h</span><span data-key="j">j</span><span data-key="k">k</span><span data-key="l">l</span>
-          </div>
-          <div class="key-row">
-            <span data-key="z">z</span><span data-key="x">x</span><span data-key="c">c</span><span data-key="v">v</span><span data-key="b">b</span><span data-key="n">n</span><span data-key="m">m</span>
-          </div>
-          <div class="key-row">
-            <span class="space-key" data-key=" ">space</span>
+          <div class="keyboard" id="keyboard" aria-label="QWERTY keyboard. Coloured keys show finger zones; dim keys are not unlocked yet.">
+            <div class="keyboard-row number-row">
+              <span class="key key-special">Esc</span>
+              <span class="key key-number"><span>1</span><small>!</small></span>
+              <span class="key key-number"><span>2</span><small>@</small></span>
+              <span class="key key-number"><span>3</span><small>#</small></span>
+              <span class="key key-number"><span>4</span><small>$</small></span>
+              <span class="key key-number"><span>5</span><small>%</small></span>
+              <span class="key key-number"><span>6</span><small>^</small></span>
+              <span class="key key-number"><span>7</span><small>&amp;</small></span>
+              <span class="key key-number"><span>8</span><small>*</small></span>
+              <span class="key key-number"><span>9</span><small>(</small></span>
+              <span class="key key-number"><span>0</span><small>)</small></span>
+              <span class="key key-number"><span>-</span><small>_</small></span>
+              <span class="key key-number"><span>=</span><small>+</small></span>
+              <span class="key key-special key-backspace">Backspace</span>
+            </div>
+            <div class="keyboard-row">
+              <span class="key key-special key-tab">Tab</span>
+              <span class="key key-letter finger-pinky" data-key="q">Q</span>
+              <span class="key key-letter finger-ring" data-key="w">W</span>
+              <span class="key key-letter finger-middle" data-key="e">E</span>
+              <span class="key key-letter finger-index" data-key="r">R</span>
+              <span class="key key-letter finger-index" data-key="t">T</span>
+              <span class="key key-letter finger-index" data-key="y">Y</span>
+              <span class="key key-letter finger-index" data-key="u">U</span>
+              <span class="key key-letter finger-middle" data-key="i">I</span>
+              <span class="key key-letter finger-ring" data-key="o">O</span>
+              <span class="key key-letter finger-pinky" data-key="p">P</span>
+              <span class="key key-number">[</span>
+              <span class="key key-number">]</span>
+              <span class="key key-number key-backslash">\</span>
+            </div>
+            <div class="keyboard-row home-row">
+              <span class="key key-special key-caps">Caps</span>
+              <span class="key key-letter finger-pinky" data-key="a">A</span>
+              <span class="key key-letter finger-ring" data-key="s">S</span>
+              <span class="key key-letter finger-middle" data-key="d">D</span>
+              <span class="key key-letter finger-index key-home" data-key="f">F</span>
+              <span class="key key-letter finger-index" data-key="g">G</span>
+              <span class="key key-letter finger-index" data-key="h">H</span>
+              <span class="key key-letter finger-index key-home" data-key="j">J</span>
+              <span class="key key-letter finger-middle" data-key="k">K</span>
+              <span class="key key-letter finger-ring" data-key="l">L</span>
+              <span class="key key-number">;</span>
+              <span class="key key-number">'</span>
+              <span class="key key-special key-enter">Enter</span>
+            </div>
+            <div class="keyboard-row">
+              <span class="key key-special key-shift">Shift</span>
+              <span class="key key-letter finger-pinky" data-key="z">Z</span>
+              <span class="key key-letter finger-ring" data-key="x">X</span>
+              <span class="key key-letter finger-middle" data-key="c">C</span>
+              <span class="key key-letter finger-index" data-key="v">V</span>
+              <span class="key key-letter finger-index" data-key="b">B</span>
+              <span class="key key-letter finger-index" data-key="n">N</span>
+              <span class="key key-letter finger-index" data-key="m">M</span>
+              <span class="key key-number">,</span>
+              <span class="key key-number">.</span>
+              <span class="key key-number">/</span>
+              <span class="key key-special key-shift">Shift</span>
+            </div>
+            <div class="keyboard-row bottom-row">
+              <span class="key key-special key-modifier">Ctrl</span>
+              <span class="key key-special key-modifier">Alt</span>
+              <span class="key key-space" data-key=" " aria-label="Space">space</span>
+              <span class="key key-special key-modifier">Alt</span>
+              <span class="key key-special key-modifier">Ctrl</span>
+            </div>
           </div>
         </div>
 
