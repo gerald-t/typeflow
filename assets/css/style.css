@@ -72,3 +72,89 @@ footer span:first-child{font-weight:800;letter-spacing:.4px;color:#929bad}
 .setting-row input{accent-color:var(--accent);width:17px;height:17px}
 .dialog-note{margin:16px 0}.dialog-done{width:100%}
 @media(max-width:650px){.app-shell{padding:0 16px}.topbar{gap:20px}.top-nav{gap:15px}.welcome-row{padding-top:32px;align-items:flex-start;gap:12px;flex-direction:column}h1{font-size:32px}.practice-panel{padding:18px 14px}.stats-row{margin-top:23px}.stat{padding-left:10px}.stat strong{font-size:21px}.prompt{font-size:16px;line-height:2}.key-row{gap:3px}.key-row span{width:27px;height:29px;font-size:10px}.key-row span.space-key{width:170px}.practice-toolbar{align-items:flex-start;flex-direction:column}.practice-actions{align-items:flex-start;gap:14px;flex-direction:column}.action-buttons{width:100%}.action-buttons button{flex:1}.progress-cards{grid-template-columns:1fr}.section-heading{align-items:flex-start;gap:8px;flex-direction:column}footer{gap:12px;flex-direction:column}}
+
+
+/* Progressive letter learning */
+.letter-learning{margin:22px 0 4px;padding:13px 15px;background:#10151e;border:1px solid var(--border);border-radius:12px}
+.letter-learning-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}
+.letter-learning-heading strong{font-size:9px;letter-spacing:1.3px;color:#c9c3ff}
+.letter-learning-heading span{font-size:11px;color:var(--muted)}
+.letter-chips{display:flex;flex-wrap:wrap;gap:5px}
+.letter-chip{display:grid;place-items:center;width:25px;height:25px;border:1px solid #313948;border-radius:5px;background:#191f2a;color:#667184;font:11px 'DM Mono',monospace;transition:all .2s}
+.letter-chip.is-unlocked{background:#292541;border-color:#685bb2;color:#eeeaff;box-shadow:inset 0 -2px 0 #9a8cff55}
+.letter-learning-note{margin:9px 0 0;color:#7e899b;font-size:10px;line-height:1.5}
+
+/* Full QWERTY keyboard with finger zones */
+.keyboard-wrap{max-width:840px;margin:24px auto 12px;padding:16px 14px 14px;background:#10151e;border:1px solid #2b3442;border-radius:16px;box-shadow:0 12px 30px #0003}
+.keyboard-legend{display:flex;justify-content:center;gap:15px;flex-wrap:wrap;margin-bottom:13px;color:#8791a2;font-size:9px}
+.keyboard-legend span{display:flex;align-items:center;gap:5px}
+.finger-swatch{display:inline-block;width:8px;height:8px;border-radius:3px}
+.finger-pinky{--finger-color:#c87891}
+.finger-ring{--finger-color:#e4a04c}
+.finger-middle{--finger-color:#cfc85b}
+.finger-index{--finger-color:#68a99e}
+.finger-swatch.finger-pinky{background:#c87891}
+.finger-swatch.finger-ring{background:#e4a04c}
+.finger-swatch.finger-middle{background:#cfc85b}
+.finger-swatch.finger-index{background:#68a99e}
+.keyboard{display:flex;flex-direction:column;gap:5px;width:100%;max-width:790px;margin:0 auto}
+.keyboard-row{display:flex;justify-content:center;gap:5px;width:100%}
+.key{position:relative;display:flex;align-items:center;justify-content:center;flex:1;min-width:0;height:43px;padding:4px 3px;border:1px solid #354051;border-radius:6px;background:#1b2230;color:#aab4c5;font:12px 'DM Mono',monospace;box-shadow:0 3px 0 #090d13;transition:background .12s,border-color .12s,transform .12s,opacity .12s}
+.key-letter{background:color-mix(in srgb,var(--finger-color) 24%,#1b2230);border-color:color-mix(in srgb,var(--finger-color) 45%,#354051);color:#e2e8f1}
+.key-letter.is-locked{background:#171c25;border-color:#283140;color:#566173;opacity:.62;box-shadow:0 2px 0 #090d13}
+.key-letter.is-unlocked{opacity:1}
+.key-letter.is-unlocked:not(.next-key){background:color-mix(in srgb,var(--finger-color) 31%,#1b2230)}
+.key-letter.next-key,.key-space.next-key{z-index:1;background:var(--accent);border-color:#c0b8ff;color:#171322;box-shadow:0 0 0 2px #9a8cff55,0 4px 0 #6659b8;transform:translateY(-2px);opacity:1}
+.key-number{flex-direction:column;gap:0;color:#929daf;background:#1b2230}
+.key-number span{font-size:12px}
+.key-number small{font-size:8px;color:#667184}
+.key-special{flex:1.45;max-width:82px;background:#202736;color:#8e9aad;font:10px 'DM Sans',sans-serif}
+.key-escape{max-width:48px}
+.key-backspace{max-width:94px}
+.key-tab{max-width:58px}
+.key-caps{max-width:72px}
+.key-enter{max-width:76px}
+.key-shift{max-width:90px}
+.key-modifier{max-width:64px}
+.key-backslash{max-width:45px}
+.key-home::after{content:"";position:absolute;bottom:6px;width:9px;height:2px;border-radius:2px;background:#e5eaf3aa}
+.key-space{flex:6;max-width:450px;height:39px;background:#283244;color:#9ba8bb;font:10px 'DM Sans',sans-serif;letter-spacing:1px}
+.bottom-row{padding:0 8%}
+.key:focus{outline:none}
+@media(max-width:760px){
+  .app-shell{padding:0 14px}
+  .practice-panel{padding:18px 13px}
+  .keyboard-wrap{padding:11px 7px 10px;margin-top:18px}
+  .keyboard{gap:4px}
+  .keyboard-row{gap:3px}
+  .key{height:34px;font-size:10px;padding:2px 1px;border-radius:4px}
+  .key-number small{font-size:7px}
+  .key-special{font-size:8px}
+  .key-escape{max-width:34px}
+  .key-backspace{max-width:65px}
+  .key-tab{max-width:42px}
+  .key-caps{max-width:50px}
+  .key-enter{max-width:52px}
+  .key-shift{max-width:62px}
+  .key-modifier{max-width:43px}
+  .key-backslash{max-width:28px}
+  .key-space{height:32px}
+  .keyboard-legend{gap:8px;font-size:8px}
+}
+@media(max-width:470px){
+  .keyboard-wrap{padding:8px 5px}
+  .keyboard-row{gap:2px}
+  .key{height:28px;font-size:8px}
+  .key-number small{font-size:6px}
+  .key-special{font-size:7px}
+  .key-escape{max-width:27px}
+  .key-backspace{max-width:53px}
+  .key-tab{max-width:34px}
+  .key-caps{max-width:41px}
+  .key-enter{max-width:42px}
+  .key-shift{max-width:48px}
+  .key-modifier{max-width:34px}
+  .key-backslash{max-width:22px}
+  .key-space{height:27px}
+  .letter-chip{width:22px;height:22px;font-size:9px}
+}
