@@ -143,8 +143,33 @@
     }
     return words[words.length - 1];
   }
+  function makePseudoWord(allowed, focus) {
+    const vowels = allowed.filter(letter => 'aeiou'.includes(letter));
+    const consonants = allowed.filter(letter => !'aeiou'.includes(letter));
+    const focusType = 'aeiou'.includes(focus) ? 'V' : 'C';
+    const patterns = [
+      ['C', 'V', 'C'],
+      ['V', 'C', 'V'],
+      ['C', 'V', 'C', 'V'],
+      ['V', 'C', 'V', 'C'],
+      ['C', 'V', 'C', 'V', 'C'],
+      ['V', 'C', 'V', 'C', 'V']
+    ];
+    const pattern = patterns[Math.floor(Math.random() * patterns.length)];
+    const focusPositions = pattern
+      .map((type, index) => type === focusType ? index : -1)
+      .filter(index => index >= 0);
+    const focusPosition = focusPositions[Math.floor(Math.random() * focusPositions.length)];
+    return pattern.map((type, index) => {
+      if (index === focusPosition) return focus;
+      const choices = type === 'V' ? vowels : consonants;
+      return choices[Math.floor(Math.random() * choices.length)];
+    }).join('');
+  }
+
   function pickExercise() {
-    const allowed = new Set(activeLetters().split(''));
+    const allowedLetters = activeLetters();
+    const allowed = new Set(allowedLetters.split(''));
     const focus = focusLetter();
     exerciseFocus = focus;
     const candidates = wordBank.filter(word =>
@@ -153,9 +178,17 @@
       word.includes(focus) &&
       [...word].every(letter => allowed.has(letter))
     );
-    const usableWords = candidates.length >= 6 ? candidates : ['near', 'rain', 'earn', 'inner', 'arena'];
+    const usableWords = [...candidates];
+    // Add pronounceable, unlocked-letter-only syllables when the real-word pool is small.
+    if (usableWords.length < 18) {
+      for (let i = 0; i < 24; i++) {
+        usableWords.push(makePseudoWord(allowedLetters.split(''), focus));
+      }
+    }
     const weak = weakKeys();
-    const weights = usableWords.map(word => 1 + [...word].filter(char => weak.includes(char)).length * 2);
+    const weights = usableWords.map(word =>
+      1 + [...word].filter(char => weak.includes(char)).length * 2
+    );
     const totalWeight = weights.reduce((sum, weight) => sum + weight, 0);
     const words = [];
     for (let i = 0; i < EXERCISE_WORDS; i++) {
@@ -163,7 +196,6 @@
     }
     return words.join(' ');
   }
-
   function recordLearningSample(letter, wasCorrect) {
     const stat = learningStats[letter];
     if (!stat) return;
