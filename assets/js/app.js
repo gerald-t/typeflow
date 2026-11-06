@@ -89,6 +89,7 @@
   });
 
   let target = '';
+  let exerciseFocus = 'n';
   let typed = '';
   let startedAt = null;
   let statsInterval = null;
@@ -145,6 +146,7 @@
   function pickExercise() {
     const allowed = new Set(activeLetters().split(''));
     const focus = focusLetter();
+    exerciseFocus = focus;
     const candidates = wordBank.filter(word =>
       word.length >= 2 &&
       /^[a-z]+$/.test(word) &&
@@ -172,7 +174,7 @@
   function renderLetterProgress() {
     const active = activeLetters();
     $('#letter-count').textContent = unlockedCount + ' / 26 LETTERS UNLOCKED';
-    $('#focus-key-label').textContent = 'Focus key: ' + focusLetter().toUpperCase();
+    $('#focus-key-label').textContent = 'Focus key: ' + exerciseFocus.toUpperCase();
     $('#next-letter').textContent = unlockedCount < LETTER_ORDER.length
       ? 'Next letter: ' + LETTER_ORDER[unlockedCount].toUpperCase()
       : 'All letters unlocked';
@@ -200,6 +202,7 @@
     if (!allReady) return '';
     const newLetter = LETTER_ORDER[unlockedCount];
     unlockedCount += 1;
+    exerciseFocus = focusLetter();
     saveLearningState();
     renderLetterProgress();
     updateKeyboard();
