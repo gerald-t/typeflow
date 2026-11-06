@@ -25,7 +25,7 @@
     'jacket juice join judge major object enjoy project kind kick knock market thank quick quite queen equal square ' +
     'request unique vivid voice value travel above over seven heavy village wave twelve yellow young yesterday beyond'
   ).split(' '))];
-  const LETTER_ORDER = 'neiar toslducpmhgbfwykvxjqz'.replace(/\\s/g, '');
+  const LETTER_ORDER = 'neiartoslducpmhgbfwykvxjqz';
   const STARTER_LETTER_COUNT = 5;
   const UNLOCK_MIN_SAMPLES = 12;
   const UNLOCK_ACCURACY = 0.90;
@@ -43,7 +43,7 @@
     'season senior seniority reasoner reasoned relation relations station ' +
     'listen silent sailor reason nature return routine source lesson learn ' +
     'focus skill practice improve keyboard finger typing speed accuracy'
-  ).split(/\\s+/);
+  ).split(' ');
   const wordBank = [...new Set([...commonWords, ...additionalWords])];
 
   function loadJSON(key, fallback) {
