@@ -91,7 +91,6 @@ $pageTitle = 'TypeFlow — Adaptive Typing Practice';
     <form method="dialog">
       <div class="dialog-heading"><h2>Settings</h2><button class="icon-button" aria-label="Close settings">×</button></div>
       <label class="setting-row"><span><strong>Virtual keyboard</strong><small>Show the on-screen key guide</small></span><input id="keyboard-toggle" type="checkbox" checked></label>
-      <label class="setting-row"><span><strong>Sound feedback</strong><small>Subtle sound on each keystroke</small></span><input id="sound-toggle" type="checkbox"></label>
       <p class="dialog-note">Settings are saved in this browser.</p>
       <button class="primary-button dialog-done">Done</button>
     </form>
