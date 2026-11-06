@@ -3,7 +3,7 @@
 
   const $ = (selector) => document.querySelector(selector);
   const promptEl = $('#prompt');
-  const input = $('#typing-input');
+  const typingArea = $('#typing-area');
   const wpmEl = $('#wpm');
   const accuracyEl = $('#accuracy');
   const errorsEl = $('#errors');
@@ -154,7 +154,6 @@
     saveKeyStats();
     renderProgress();
     hintEl.textContent = 'exercise complete · choose New exercise to continue';
-    input.blur();
   }
   function reset(newExercise = false) {
     window.clearInterval(statsInterval);
@@ -168,8 +167,6 @@
     correctKeystrokes = 0;
     totalErrors = 0;
     mistakeUntil = 0;
-    input.value = '';
-    input.disabled = false;
     wpmEl.textContent = '0';
     accuracyEl.innerHTML = '100<span class="unit">%</span>';
     errorsEl.textContent = '0';
@@ -193,72 +190,78 @@
     keyStatsDirty = true;
   }
 
-  input.addEventListener('input', () => {
-    if (finished) {
-      input.value = typed;
-      return;
-    }
+  function handleTypedCharacter(enteredChar) {
+    if (finished) return;
 
-    const candidate = input.value;
+    start();
+    const expectedIndex = typed.length;
+    keystrokes += 1;
 
-    if (candidate.length < typed.length) {
-      // Backspace can move the cursor back, but previous attempts remain in accuracy.
-      typed = typed.slice(0, candidate.length);
-      correctChars = typed.length;
+    if (enteredChar.toLowerCase() === target[expectedIndex]) {
+      typed += target[expectedIndex];
+      correctChars += 1;
+      correctKeystrokes += 1;
+      recordKeyStats(expectedIndex, true);
       mistakeUntil = 0;
-      hintEl.textContent = startedAt
-        ? 'keep going · type each highlighted character correctly'
-        : 'start typing to begin · press Tab to restart';
-    } else if (candidate.length > typed.length) {
-      for (let i = typed.length; i < candidate.length; i++) {
-        if (typed.length >= target.length) break;
-        start();
-        const expectedIndex = typed.length;
-        const enteredChar = candidate[i];
-        keystrokes += 1;
-
-        if (enteredChar === target[expectedIndex]) {
-          typed += enteredChar;
-          correctChars += 1;
-          correctKeystrokes += 1;
-          recordKeyStats(expectedIndex, true);
-          mistakeUntil = 0;
-          hintEl.textContent = 'keep going · type each highlighted character correctly';
-        } else {
-          totalErrors += 1;
-          recordKeyStats(expectedIndex, false);
-          mistakeUntil = Date.now() + 350;
-          hintEl.textContent = 'not quite — try the highlighted character again';
-          window.setTimeout(() => {
-            if (!finished && Date.now() >= mistakeUntil) renderPrompt();
-          }, 360);
-        }
-      }
+      hintEl.textContent = 'keep going · type each highlighted character correctly';
+    } else {
+      totalErrors += 1;
+      recordKeyStats(expectedIndex, false);
+      mistakeUntil = Date.now() + 350;
+      hintEl.textContent = 'not quite — try the highlighted character again';
+      window.setTimeout(() => {
+        if (!finished && Date.now() >= mistakeUntil) renderPrompt();
+      }, 360);
     }
 
-    // Only accepted, correct characters remain in the input; the cursor never skips ahead.
-    input.value = typed;
-    input.setSelectionRange(typed.length, typed.length);
     renderPrompt();
     updateStats();
-
     if (typed.length === target.length) finish();
-  });
+  }
 
-  input.addEventListener('keydown', event => {
+  typingArea.addEventListener('keydown', event => {
     if (event.key === 'Tab') {
       event.preventDefault();
       reset(false);
-      input.focus();
+      focusTypingArea();
+      return;
     }
+
+    if (event.key === 'Backspace') {
+      event.preventDefault();
+      if (!finished && typed.length > 0) {
+        typed = typed.slice(0, -1);
+        correctChars = typed.length;
+        mistakeUntil = 0;
+        hintEl.textContent = startedAt
+          ? 'keep going · type each highlighted character correctly'
+          : 'start typing to begin · press Tab to restart';
+        renderPrompt();
+        updateStats();
+      }
+      return;
+    }
+
+    // Ignore browser shortcuts and IME composition; only capture printable keys.
+    if (event.ctrlKey || event.metaKey || event.altKey || event.isComposing || event.key.length !== 1) {
+      return;
+    }
+
+    // The practice panel is not an editable field, so OS/browser text suggestions
+    // have no text box to attach to. We process the key directly instead.
+    event.preventDefault();
+    handleTypedCharacter(event.key);
   });
-  input.addEventListener('paste', event => event.preventDefault());
-  input.addEventListener('drop', event => event.preventDefault());
+
   window.addEventListener('pagehide', saveKeyStats);
 
-  $('#typing-area').addEventListener('click', () => input.focus());
-  $('#restart-button').addEventListener('click', () => { reset(false); input.focus(); });
-  $('#new-button').addEventListener('click', () => { reset(true); input.focus(); });
+  function focusTypingArea() {
+    typingArea.focus({preventScroll: true});
+  }
+
+  typingArea.addEventListener('click', focusTypingArea);
+  $('#restart-button').addEventListener('click', () => { reset(false); focusTypingArea(); });
+  $('#new-button').addEventListener('click', () => { reset(true); focusTypingArea(); });
 
   $('#settings-button').addEventListener('click', () => $('#settings-dialog').showModal());
   $('#keyboard-toggle').checked = loadSetting('typeflow-show-keyboard') !== 'false';
@@ -270,5 +273,5 @@
 
   renderProgress();
   reset(true);
-  input.focus({preventScroll: true});
+  focusTypingArea();
 })();
