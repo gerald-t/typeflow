@@ -4,11 +4,12 @@ A simple adaptive typing-practice website built with HTML, CSS and vanilla JavaS
 
 ## Features
 
-- 15, 30 and 60 second typing sessions
-- Live WPM, accuracy, error count and countdown
+- Untimed typing exercises that end when the full passage is completed
+- Strict character-by-character typing: an incorrect key does not advance the cursor
+- Live WPM, accuracy and error count
 - Adaptive exercises that give extra practice to weaker keys
-- Correct, incorrect and next-character highlighting
-- Virtual keyboard with next-key highlighting
+- Correct, current-character and next-key highlighting
+- Optional virtual keyboard with next-key highlighting
 - Restart and new exercise controls
 - Browser localStorage for progress, key statistics and settings
 
