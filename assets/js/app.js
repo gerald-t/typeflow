@@ -281,6 +281,7 @@
     window.clearInterval(statsInterval);
     saveKeyStats();
     target = newExercise || !target ? pickExercise() : target;
+    renderLetterProgress();
     typed = '';
     startedAt = null;
     finished = false;
