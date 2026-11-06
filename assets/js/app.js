@@ -121,6 +121,19 @@
       .slice(0, 4)
       .map(([letter]) => letter);
   }
+  function focusLetter() {
+    return activeLetters().split('')
+      .map((letter, index) => {
+        const stat = learningStats[letter];
+        const samples = stat.hits + stat.errors;
+        return {letter, index, samples, accuracy: samples ? stat.hits / samples : 0};
+      })
+      .sort((a, b) => {
+        if (a.samples === 0 && b.samples > 0) return -1;
+        if (b.samples === 0 && a.samples > 0) return 1;
+        return a.accuracy - b.accuracy || a.index - b.index;
+      })[0].letter;
+  }
   function pickWeighted(words, weights, total) {
     let roll = Math.random() * total;
     for (let i = 0; i < words.length; i++) {
@@ -131,8 +144,12 @@
   }
   function pickExercise() {
     const allowed = new Set(activeLetters().split(''));
+    const focus = focusLetter();
     const candidates = wordBank.filter(word =>
-      word.length >= 2 && /^[a-z]+$/.test(word) && [...word].every(letter => allowed.has(letter))
+      word.length >= 2 &&
+      /^[a-z]+$/.test(word) &&
+      word.includes(focus) &&
+      [...word].every(letter => allowed.has(letter))
     );
     const usableWords = candidates.length >= 6 ? candidates : ['near', 'rain', 'earn', 'inner', 'arena'];
     const weak = weakKeys();
@@ -155,6 +172,7 @@
   function renderLetterProgress() {
     const active = activeLetters();
     $('#letter-count').textContent = unlockedCount + ' / 26 LETTERS UNLOCKED';
+    $('#focus-key-label').textContent = 'Focus key: ' + focusLetter().toUpperCase();
     $('#next-letter').textContent = unlockedCount < LETTER_ORDER.length
       ? 'Next letter: ' + LETTER_ORDER[unlockedCount].toUpperCase()
       : 'All letters unlocked';
