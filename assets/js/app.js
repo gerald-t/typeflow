@@ -99,7 +99,7 @@
   let correctKeystrokes = 0;
   let totalErrors = 0;
   let keyStatsDirty = false;
-  let mistakeUntil = 0;
+  const mistakePositions = new Set();
 
   function saveProgress() { saveJSON('typeflow-progress', saved); }
   function saveKeyStats() {
@@ -247,10 +247,10 @@
       const span = document.createElement('span');
       span.textContent = char;
       if (index < typed.length) span.className = 'correct';
-      else if (index === typed.length && !finished) {
-        span.className = 'current pending';
-        if (Date.now() < mistakeUntil) span.classList.add('error-flash');
-      } else span.className = 'pending';
+      else if (index === typed.length && !finished) span.className = 'current pending';
+      else span.className = 'pending';
+      // Keep the target character red after an error, even once it is corrected.
+      if (mistakePositions.has(index)) span.classList.add('has-error');
       promptEl.appendChild(span);
     });
     updateKeyboard();
@@ -321,7 +321,7 @@
     keystrokes = 0;
     correctKeystrokes = 0;
     totalErrors = 0;
-    mistakeUntil = 0;
+    mistakePositions.clear();
     wpmEl.textContent = '0';
     accuracyEl.innerHTML = '100<span class="unit">%</span>';
     errorsEl.textContent = '0';
@@ -359,16 +359,12 @@
       correctChars += 1;
       correctKeystrokes += 1;
       recordKeyStats(expectedIndex, true);
-      mistakeUntil = 0;
       hintEl.textContent = 'keep going · type each highlighted character correctly';
     } else {
       totalErrors += 1;
       recordKeyStats(expectedIndex, false);
-      mistakeUntil = Date.now() + 350;
+      mistakePositions.add(expectedIndex);
       hintEl.textContent = 'not quite — try the highlighted character again';
-      window.setTimeout(() => {
-        if (!finished && Date.now() >= mistakeUntil) renderPrompt();
-      }, 360);
     }
 
     renderPrompt();
