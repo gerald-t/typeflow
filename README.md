@@ -5,11 +5,12 @@ A simple adaptive typing-practice website built with HTML, CSS and vanilla JavaS
 ## Features
 
 - Untimed typing exercises that end when the full passage is completed
-- Strict character-by-character typing: an incorrect key does not advance the cursor
+- Strict character-by-character typing: an incorrect key does not advance the cursor, and Backspace does not erase accepted characters
 - Progressive lessons beginning with N, E, I, A and R, then unlocking one letter at a time
-- New letters unlock after every active letter reaches at least 12 attempts and 90% accuracy
-- Practice text uses only the letters unlocked so far and gives extra attention to weaker keys
-- Full QWERTY virtual keyboard with finger-zone colours, locked-key dimming and next-key highlighting
+- A new letter unlocks after every active letter has at least 12 attempts and 90% accuracy
+- A focus letter is practised in every word, with extra attention given to weaker keys
+- Practice text uses only unlocked letters; pronounceable syllables supplement the word list when needed
+- Full QWERTY virtual keyboard with finger-zone colours, home-row bumps, locked-key dimming and next-key highlighting
 - Live WPM, accuracy and error count
 - Restart and new exercise controls
 - Browser localStorage for progress, key statistics, learning progression and settings
