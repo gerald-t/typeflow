@@ -228,17 +228,8 @@
     }
 
     if (event.key === 'Backspace') {
+      // Strict practice: accepted characters stay in place. Backspace does nothing.
       event.preventDefault();
-      if (!finished && typed.length > 0) {
-        typed = typed.slice(0, -1);
-        correctChars = typed.length;
-        mistakeUntil = 0;
-        hintEl.textContent = startedAt
-          ? 'keep going · type each highlighted character correctly'
-          : 'start typing to begin · press Tab to restart';
-        renderPrompt();
-        updateStats();
-      }
       return;
     }
 
