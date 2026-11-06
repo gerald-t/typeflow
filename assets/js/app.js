@@ -25,8 +25,26 @@
     'jacket juice join judge major object enjoy project kind kick knock market thank quick quite queen equal square ' +
     'request unique vivid voice value travel above over seven heavy village wave twelve yellow young yesterday beyond'
   ).split(' '))];
-  const MIN_KEY_SAMPLES = 10;
-  const EXERCISE_WORDS = 20;
+  const LETTER_ORDER = 'neiar toslducpmhgbfwykvxjqz'.replace(/\\s/g, '');
+  const STARTER_LETTER_COUNT = 5;
+  const UNLOCK_MIN_SAMPLES = 12;
+  const UNLOCK_ACCURACY = 0.90;
+  const MIN_KEY_SAMPLES = 8;
+  const EXERCISE_WORDS = 24;
+  const additionalWords = (
+    'near era rain ear are air an in nine inner nearer rear rare earn rein ire area arena eerie rani ' +
+    'aerie airier rainier ranee erne ran nae nee anna anne erin irene ' +
+    'rate tear tier tire train retain retina terrain eater enter entire attain ' +
+    'ore oreo one nor not ton toe too rot riot iron into trio tone note ' +
+    'stone store sort rose sore soon soonest notes onset stern snore norte ' +
+    'tea ten net tan tin tie tire tries train trains stain stare start ' +
+    'seat east eats eat seen see teen teenie nest nests rent rents near ' +
+    'son sat sit sin sir set sea seaer sore sorest ratios ratio reason ' +
+    'season senior seniority reasoner reasoned relation relations station ' +
+    'listen silent sailor reason nature return routine source lesson learn ' +
+    'focus skill practice improve keyboard finger typing speed accuracy'
+  ).split(/\\s+/);
+  const wordBank = [...new Set([...commonWords, ...additionalWords])];
 
   function loadJSON(key, fallback) {
     try {
@@ -56,6 +74,19 @@
     accuracyTotal: toCount(storedProgress.accuracyTotal),
     totalSeconds: toCount(storedProgress.totalSeconds)
   };
+  const storedLearning = loadJSON('typeflow-learning-state', {});
+  const storedUnlockCount = Number(storedLearning.unlockedCount);
+  let unlockedCount = Number.isInteger(storedUnlockCount)
+    ? Math.min(LETTER_ORDER.length, Math.max(STARTER_LETTER_COUNT, storedUnlockCount))
+    : STARTER_LETTER_COUNT;
+  const learningStats = {};
+  LETTER_ORDER.split('').forEach(letter => {
+    const stat = storedLearning.stats && storedLearning.stats[letter];
+    learningStats[letter] = {
+      hits: stat && typeof stat === 'object' ? toCount(stat.hits) : 0,
+      errors: stat && typeof stat === 'object' ? toCount(stat.errors) : 0
+    };
+  });
 
   let target = '';
   let typed = '';
@@ -75,15 +106,21 @@
     saveJSON('typeflow-key-stats', keyStats);
     keyStatsDirty = false;
   }
+  function activeLetters() {
+    return LETTER_ORDER.slice(0, unlockedCount);
+  }
+  function saveLearningState() {
+    saveJSON('typeflow-learning-state', {unlockedCount, stats: learningStats});
+  }
   function weakKeys() {
-    return Object.entries(keyStats)
-      .filter(([, stat]) => stat.hits + stat.errors >= MIN_KEY_SAMPLES && stat.errors > 0)
-      .map(([key, stat]) => [key, stat.errors / (stat.hits + stat.errors)])
+    return activeLetters().split('')
+      .map(letter => [letter, learningStats[letter]])
+      .filter(([, stat]) => stat.hits + stat.errors >= MIN_KEY_SAMPLES)
+      .map(([letter, stat]) => [letter, stat.errors / (stat.hits + stat.errors)])
       .sort((a, b) => b[1] - a[1])
       .slice(0, 4)
-      .map(([key]) => key);
+      .map(([letter]) => letter);
   }
-  function randomWord() { return commonWords[Math.floor(Math.random() * commonWords.length)]; }
   function pickWeighted(words, weights, total) {
     let roll = Math.random() * total;
     for (let i = 0; i < words.length; i++) {
@@ -93,15 +130,62 @@
     return words[words.length - 1];
   }
   function pickExercise() {
+    const allowed = new Set(activeLetters().split(''));
+    const candidates = wordBank.filter(word =>
+      word.length >= 2 && /^[a-z]+$/.test(word) && [...word].every(letter => allowed.has(letter))
+    );
+    const usableWords = candidates.length >= 6 ? candidates : ['near', 'rain', 'earn', 'inner', 'arena'];
     const weak = weakKeys();
-    const targeted = weak.length ? commonWords.filter(word => weak.some(key => word.includes(key))) : [];
-    const weights = targeted.map(word => [...word].filter(char => weak.includes(char)).length);
+    const weights = usableWords.map(word => 1 + [...word].filter(char => weak.includes(char)).length * 2);
     const totalWeight = weights.reduce((sum, weight) => sum + weight, 0);
     const words = [];
     for (let i = 0; i < EXERCISE_WORDS; i++) {
-      words.push(totalWeight && Math.random() < .65 ? pickWeighted(targeted, weights, totalWeight) : randomWord());
+      words.push(pickWeighted(usableWords, weights, totalWeight));
     }
     return words.join(' ');
+  }
+
+  function recordLearningSample(letter, wasCorrect) {
+    const stat = learningStats[letter];
+    if (!stat) return;
+    if (wasCorrect) stat.hits += 1;
+    else stat.errors += 1;
+    saveLearningState();
+  }
+  function renderLetterProgress() {
+    const active = activeLetters();
+    $('#letter-count').textContent = unlockedCount + ' / 26 LETTERS UNLOCKED';
+    $('#next-letter').textContent = unlockedCount < LETTER_ORDER.length
+      ? 'Next letter: ' + LETTER_ORDER[unlockedCount].toUpperCase()
+      : 'All letters unlocked';
+    const chips = $('#letter-chips');
+    chips.replaceChildren();
+    LETTER_ORDER.split('').forEach((letter, index) => {
+      const chip = document.createElement('span');
+      chip.className = 'letter-chip' + (index < unlockedCount ? ' is-unlocked' : '');
+      chip.textContent = letter.toUpperCase();
+      chip.title = index < unlockedCount ? 'Unlocked letter ' + letter.toUpperCase() : 'Locked letter ' + letter.toUpperCase();
+      chips.appendChild(chip);
+    });
+    $('#letter-note').textContent = unlockedCount < LETTER_ORDER.length
+      ? 'Practise each unlocked letter. A new letter unlocks when every active letter has at least ' +
+        UNLOCK_MIN_SAMPLES + ' attempts and ' + Math.round(UNLOCK_ACCURACY * 100) + '% accuracy.'
+      : 'All letters are unlocked. Keep practising to strengthen your slowest keys.';
+  }
+  function checkForLetterUnlock() {
+    if (unlockedCount >= LETTER_ORDER.length) return '';
+    const allReady = activeLetters().split('').every(letter => {
+      const stat = learningStats[letter];
+      const samples = stat.hits + stat.errors;
+      return samples >= UNLOCK_MIN_SAMPLES && samples > 0 && (stat.hits / samples) >= UNLOCK_ACCURACY;
+    });
+    if (!allReady) return '';
+    const newLetter = LETTER_ORDER[unlockedCount];
+    unlockedCount += 1;
+    saveLearningState();
+    renderLetterProgress();
+    updateKeyboard();
+    return newLetter.toUpperCase();
   }
 
   function renderPrompt() {
@@ -119,8 +203,22 @@
     updateKeyboard();
   }
   function updateKeyboard() {
+    const unlocked = new Set(activeLetters().split(''));
+    const expected = target[typed.length] || '';
     keyboard.querySelectorAll('[data-key]').forEach(key => {
-      key.classList.toggle('next-key', key.dataset.key === (target[typed.length] || '').toLowerCase());
+      const letter = key.dataset.key;
+      const isSpace = letter === ' ';
+      const unlockedKey = isSpace || unlocked.has(letter);
+      key.classList.toggle('is-locked', !unlockedKey);
+      key.classList.toggle('is-unlocked', !isSpace && unlockedKey);
+      key.classList.toggle('next-key', letter === expected);
+      if (!isSpace && /^[a-z]$/.test(letter)) {
+        const stat = learningStats[letter];
+        const samples = stat.hits + stat.errors;
+        key.title = samples
+          ? letter.toUpperCase() + ' · ' + Math.round((stat.hits / samples) * 100) + '% accuracy (' + samples + ' attempts)'
+          : letter.toUpperCase() + ' · not calibrated yet';
+      }
     });
   }
   function elapsedSeconds() {
@@ -150,10 +248,13 @@
     saved.bestWpm = Math.max(saved.bestWpm, stats.wpm);
     saved.accuracyTotal += stats.accuracy;
     saved.totalSeconds += Math.max(1, Math.round(elapsedSeconds()));
+    const unlockedLetter = checkForLetterUnlock();
     saveProgress();
     saveKeyStats();
     renderProgress();
-    hintEl.textContent = 'exercise complete · choose New exercise to continue';
+    hintEl.textContent = unlockedLetter
+      ? 'Great work! New letter unlocked: ' + unlockedLetter + ' · choose New exercise to practise it'
+      : 'exercise complete · choose New exercise to continue';
   }
   function reset(newExercise = false) {
     window.clearInterval(statsInterval);
@@ -180,6 +281,7 @@
     $('#average-accuracy').textContent = saved.sessions ? Math.round(saved.accuracyTotal / saved.sessions) + '%' : '—';
     const totalMinutes = Math.floor(saved.totalSeconds / 60);
     $('#total-time').textContent = totalMinutes < 1 ? saved.totalSeconds + 's' : totalMinutes + 'm';
+    renderLetterProgress();
   }
   function recordKeyStats(index, wasCorrect) {
     const key = (target[index] || '').toLowerCase();
@@ -188,6 +290,7 @@
     if (wasCorrect) keyStats[key].hits += 1;
     else keyStats[key].errors += 1;
     keyStatsDirty = true;
+    recordLearningSample(key, wasCorrect);
   }
 
   function handleTypedCharacter(enteredChar) {
@@ -264,5 +367,6 @@
 
   renderProgress();
   reset(true);
+  updateKeyboard();
   focusTypingArea();
 })();
