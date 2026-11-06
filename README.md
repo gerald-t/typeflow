@@ -6,18 +6,19 @@ A simple adaptive typing-practice website built with HTML, CSS and vanilla JavaS
 
 - Untimed typing exercises that end when the full passage is completed
 - Strict character-by-character typing: an incorrect key does not advance the cursor
+- Progressive lessons beginning with N, E, I, A and R, then unlocking one letter at a time
+- New letters unlock after every active letter reaches at least 12 attempts and 90% accuracy
+- Practice text uses only the letters unlocked so far and gives extra attention to weaker keys
+- Full QWERTY virtual keyboard with finger-zone colours, locked-key dimming and next-key highlighting
 - Live WPM, accuracy and error count
-- Adaptive exercises that give extra practice to weaker keys
-- Correct, current-character and next-key highlighting
-- Optional virtual keyboard with next-key highlighting
 - Restart and new exercise controls
-- Browser localStorage for progress, key statistics and settings
+- Browser localStorage for progress, key statistics, learning progression and settings
 
 ## Project structure
 
 - index.html — main website page
 - assets/css/style.css — page styling
-- assets/js/app.js — typing test and browser-side features
+- assets/js/app.js — typing practice and browser-side features
 - assets/images/ — images used by the website, when needed
 - .gitignore — files excluded from Git
 
