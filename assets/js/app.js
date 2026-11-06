@@ -4,7 +4,6 @@
   const $ = (selector) => document.querySelector(selector);
   const promptEl = $('#prompt');
   const input = $('#typing-input');
-  const timeEl = $('#time');
   const wpmEl = $('#wpm');
   const accuracyEl = $('#accuracy');
   const errorsEl = $('#errors');
@@ -57,9 +56,18 @@
     accuracyTotal: toCount(storedProgress.accuracyTotal),
     totalSeconds: toCount(storedProgress.totalSeconds)
   };
-  let duration = 30, target = '', typed = '', startedAt = null, timer = null, remaining = duration, finished = false;
-  let correctChars = 0, keystrokes = 0, correctKeystrokes = 0, totalErrors = 0;
+
+  let target = '';
+  let typed = '';
+  let startedAt = null;
+  let statsInterval = null;
+  let finished = false;
+  let correctChars = 0;
+  let keystrokes = 0;
+  let correctKeystrokes = 0;
+  let totalErrors = 0;
   let keyStatsDirty = false;
+  let mistakeUntil = 0;
 
   function saveProgress() { saveJSON('typeflow-progress', saved); }
   function saveKeyStats() {
@@ -95,25 +103,31 @@
     }
     return words.join(' ');
   }
+
   function renderPrompt() {
     promptEl.replaceChildren();
     [...target].forEach((char, index) => {
       const span = document.createElement('span');
       span.textContent = char;
-      if (index < typed.length) span.className = typed[index] === char ? 'correct' : 'incorrect';
-      else if (index === typed.length && !finished) span.className = 'current pending';
-      else span.className = 'pending';
+      if (index < typed.length) span.className = 'correct';
+      else if (index === typed.length && !finished) {
+        span.className = 'current pending';
+        if (Date.now() < mistakeUntil) span.classList.add('error-flash');
+      } else span.className = 'pending';
       promptEl.appendChild(span);
     });
     updateKeyboard();
   }
   function updateKeyboard() {
-    keyboard.querySelectorAll('[data-key]').forEach(key => key.classList.toggle('next-key', key.dataset.key === (target[typed.length] || '').toLowerCase()));
+    keyboard.querySelectorAll('[data-key]').forEach(key => {
+      key.classList.toggle('next-key', key.dataset.key === (target[typed.length] || '').toLowerCase());
+    });
   }
-  function elapsedSeconds() { return startedAt ? Math.max(.1, (Date.now() - startedAt) / 1000) : 0; }
+  function elapsedSeconds() {
+    return startedAt ? Math.max(0.1, (Date.now() - startedAt) / 1000) : 0;
+  }
   function updateStats() {
-    const elapsed = elapsedSeconds();
-    const minutes = elapsed / 60;
+    const minutes = elapsedSeconds() / 60;
     const wpm = minutes ? Math.round((correctChars / 5) / minutes) : 0;
     const accuracy = keystrokes ? Math.round((correctKeystrokes / keystrokes) * 100) : 100;
     wpmEl.textContent = String(wpm);
@@ -121,43 +135,45 @@
     errorsEl.textContent = String(totalErrors);
     return {wpm, accuracy};
   }
-  function updateTimer() {
-    if (!startedAt || finished) return;
-    remaining = Math.max(0, duration - Math.floor(elapsedSeconds()));
-    timeEl.textContent = String(remaining);
-    if (remaining <= 0) finish();
-  }
   function start() {
     if (startedAt || finished) return;
     startedAt = Date.now();
-    hintEl.textContent = 'keep going · press Tab to restart';
-    timer = window.setInterval(updateTimer, 150);
+    hintEl.textContent = 'keep going · type each highlighted character correctly';
+    statsInterval = window.setInterval(updateStats, 250);
   }
   function finish() {
     if (finished) return;
     finished = true;
-    window.clearInterval(timer);
+    window.clearInterval(statsInterval);
     const stats = updateStats();
     saved.sessions += 1;
     saved.bestWpm = Math.max(saved.bestWpm, stats.wpm);
     saved.accuracyTotal += stats.accuracy;
-    saved.totalSeconds += Math.min(duration, Math.round(elapsedSeconds()));
+    saved.totalSeconds += Math.max(1, Math.round(elapsedSeconds()));
     saveProgress();
     saveKeyStats();
     renderProgress();
-    hintEl.textContent = 'session complete · choose New exercise to continue';
+    hintEl.textContent = 'exercise complete · choose New exercise to continue';
     input.blur();
   }
   function reset(newExercise = false) {
-    window.clearInterval(timer);
+    window.clearInterval(statsInterval);
     saveKeyStats();
-    duration = Number(document.querySelector('.duration-picker .selected').dataset.duration);
-    target = newExercise ? pickExercise() : target || pickExercise();
-    typed = ''; startedAt = null; remaining = duration; finished = false;
-    correctChars = 0; keystrokes = 0; correctKeystrokes = 0; totalErrors = 0;
-    input.value = ''; input.disabled = false;
-    timeEl.textContent = String(duration); wpmEl.textContent = '0'; accuracyEl.innerHTML = '100<span class="unit">%</span>'; errorsEl.textContent = '0';
-    hintEl.textContent = 'start typing to begin · press Tab to restart';
+    target = newExercise || !target ? pickExercise() : target;
+    typed = '';
+    startedAt = null;
+    finished = false;
+    correctChars = 0;
+    keystrokes = 0;
+    correctKeystrokes = 0;
+    totalErrors = 0;
+    mistakeUntil = 0;
+    input.value = '';
+    input.disabled = false;
+    wpmEl.textContent = '0';
+    accuracyEl.innerHTML = '100<span class="unit">%</span>';
+    errorsEl.textContent = '0';
+    hintEl.innerHTML = 'start typing to begin · press <kbd>Tab</kbd> to restart';
     renderPrompt();
   }
   function renderProgress() {
@@ -165,51 +181,85 @@
     $('#best-wpm').textContent = saved.sessions ? String(saved.bestWpm) : '—';
     $('#best-wpm-label').textContent = 'Personal best: ' + (saved.sessions ? saved.bestWpm : '—') + ' WPM';
     $('#average-accuracy').textContent = saved.sessions ? Math.round(saved.accuracyTotal / saved.sessions) + '%' : '—';
-    const minutes = Math.floor(saved.totalSeconds / 60);
-    $('#total-time').textContent = minutes < 1 ? saved.totalSeconds + 's' : minutes + 'm';
+    const totalMinutes = Math.floor(saved.totalSeconds / 60);
+    $('#total-time').textContent = totalMinutes < 1 ? saved.totalSeconds + 's' : totalMinutes + 'm';
   }
-  function recordKeyStats(previous, current) {
-    const key = (target[previous] || '').toLowerCase();
-    if (!/[a-z]/.test(key)) return;
-    keyStats[key] ||= {hits:0, errors:0};
-    if (current === target[previous]) keyStats[key].hits += 1;
+  function recordKeyStats(index, wasCorrect) {
+    const key = (target[index] || '').toLowerCase();
+    if (!/^[a-z]$/.test(key)) return;
+    keyStats[key] ||= {hits: 0, errors: 0};
+    if (wasCorrect) keyStats[key].hits += 1;
     else keyStats[key].errors += 1;
     keyStatsDirty = true;
   }
 
   input.addEventListener('input', () => {
-    if (finished) return;
-    const next = input.value.slice(0, target.length);
-    if (next.length > typed.length) {
-      start();
-      for (let i = typed.length; i < next.length; i++) {
-        recordKeyStats(i, next[i]);
-        keystrokes++;
-        if (next[i] === target[i]) { correctChars++; correctKeystrokes++; } else totalErrors++;
-      }
-    } else if (next.length < typed.length) {
-      for (let i = typed.length - 1; i >= next.length; i--) {
-        if (typed[i] === target[i]) correctChars--;
+    if (finished) {
+      input.value = typed;
+      return;
+    }
+
+    const candidate = input.value;
+
+    if (candidate.length < typed.length) {
+      // Backspace can move the cursor back, but previous attempts remain in accuracy.
+      typed = typed.slice(0, candidate.length);
+      correctChars = typed.length;
+      mistakeUntil = 0;
+      hintEl.textContent = startedAt
+        ? 'keep going · type each highlighted character correctly'
+        : 'start typing to begin · press Tab to restart';
+    } else if (candidate.length > typed.length) {
+      for (let i = typed.length; i < candidate.length; i++) {
+        if (typed.length >= target.length) break;
+        start();
+        const expectedIndex = typed.length;
+        const enteredChar = candidate[i];
+        keystrokes += 1;
+
+        if (enteredChar === target[expectedIndex]) {
+          typed += enteredChar;
+          correctChars += 1;
+          correctKeystrokes += 1;
+          recordKeyStats(expectedIndex, true);
+          mistakeUntil = 0;
+          hintEl.textContent = 'keep going · type each highlighted character correctly';
+        } else {
+          totalErrors += 1;
+          recordKeyStats(expectedIndex, false);
+          mistakeUntil = Date.now() + 350;
+          hintEl.textContent = 'not quite — try the highlighted character again';
+          window.setTimeout(() => {
+            if (!finished && Date.now() >= mistakeUntil) renderPrompt();
+          }, 360);
+        }
       }
     }
-    typed = next;
+
+    // Only accepted, correct characters remain in the input; the cursor never skips ahead.
+    input.value = typed;
+    input.setSelectionRange(typed.length, typed.length);
     renderPrompt();
     updateStats();
-    if (typed.length >= target.length) finish();
+
+    if (typed.length === target.length) finish();
   });
+
   input.addEventListener('keydown', event => {
-    if (event.key === 'Tab') { event.preventDefault(); reset(false); input.focus(); }
+    if (event.key === 'Tab') {
+      event.preventDefault();
+      reset(false);
+      input.focus();
+    }
   });
   input.addEventListener('paste', event => event.preventDefault());
   input.addEventListener('drop', event => event.preventDefault());
   window.addEventListener('pagehide', saveKeyStats);
+
   $('#typing-area').addEventListener('click', () => input.focus());
   $('#restart-button').addEventListener('click', () => { reset(false); input.focus(); });
   $('#new-button').addEventListener('click', () => { reset(true); input.focus(); });
-  document.querySelectorAll('[data-duration]').forEach(button => button.addEventListener('click', () => {
-    document.querySelectorAll('[data-duration]').forEach(item => item.classList.remove('selected'));
-    button.classList.add('selected'); reset(false);
-  }));
+
   $('#settings-button').addEventListener('click', () => $('#settings-dialog').showModal());
   $('#keyboard-toggle').checked = loadSetting('typeflow-show-keyboard') !== 'false';
   $('#keyboard-toggle').addEventListener('change', event => {
@@ -217,7 +267,8 @@
     keyboard.hidden = !event.target.checked;
   });
   keyboard.hidden = !$('#keyboard-toggle').checked;
+
   renderProgress();
   reset(true);
-  input.focus({preventScroll:true});
+  input.focus({preventScroll: true});
 })();
