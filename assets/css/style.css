@@ -37,7 +37,7 @@ h1{font-size:38px;letter-spacing:-1.8px;margin:0;font-weight:700}
 .prompt .pending{color:#657083}
 .prompt .error-flash{color:var(--red);background:#ff7c8830;border-radius:3px}
 @keyframes blink{to{border-color:transparent}}
-.typing-input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:text}
+.typing-area:focus{outline:none}.typing-area:focus-visible{outline:1px solid #4b436f;outline-offset:4px;border-radius:8px}
 .typing-hint{font-size:10px;color:#667184;margin-top:10px}.typing-hint kbd{font:10px 'DM Mono',monospace;background:#252c39;padding:2px 5px;border-radius:4px;color:#aeb8c8}
 .keyboard{margin:16px auto 12px;max-width:480px;display:flex;flex-direction:column;gap:6px;transition:opacity .2s}
 .key-row{display:flex;justify-content:center;gap:5px}
