@@ -22,12 +22,9 @@ h1{font-size:38px;letter-spacing:-1.8px;margin:0;font-weight:700}
 .streak-chip strong{color:var(--text)}
 .streak-dot,.live-dot{width:7px;height:7px;border-radius:50%;background:var(--green);display:inline-block;box-shadow:0 0 10px #79d6b055}
 .practice-panel{background:linear-gradient(145deg,#171c27,#121720);border:1px solid var(--border);border-radius:18px;padding:24px 27px 20px;box-shadow:0 20px 70px #0003}
-.practice-toolbar{display:flex;align-items:center;justify-content:space-between}
+.practice-toolbar{display:flex;align-items:center;justify-content:space-between;gap:14px}
 .mode-label{font-size:10px;letter-spacing:1.4px;color:#b9c1d0;font-weight:700;display:flex;align-items:center;gap:9px}
-.duration-picker{display:flex;background:#0d1118;border:1px solid var(--border);padding:3px;border-radius:9px;gap:2px}
-.duration-picker button{border:0;background:transparent;color:var(--muted);font-size:11px;padding:6px 12px;border-radius:6px}
-.duration-picker button.selected{background:#302b4c;color:#d9d2ff}
-.stats-row{display:grid;grid-template-columns:repeat(4,1fr);margin:28px 0 23px;border-bottom:1px solid var(--border);padding-bottom:18px}
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);margin:28px 0 23px;border-bottom:1px solid var(--border);padding-bottom:18px}
 .stat{display:flex;flex-direction:column;gap:5px;border-right:1px solid var(--border);padding-left:20px}
 .stat:first-child{padding-left:0}.stat:last-child{border:0}
 .stat-label,.card-label{font-size:9px;letter-spacing:1.5px;color:var(--muted);font-weight:700}
@@ -35,9 +32,10 @@ h1{font-size:38px;letter-spacing:-1.8px;margin:0;font-weight:700}
 .unit{font-size:14px;color:var(--muted);margin-left:2px}
 .typing-area{position:relative;min-height:156px;padding:15px 7px 5px;cursor:text}
 .prompt{font-family:'DM Mono',monospace;font-size:20px;line-height:2.05;letter-spacing:.1px;color:#657083;overflow-wrap:anywhere;user-select:none}
-.prompt .correct{color:#dfe8f4}.prompt .incorrect{color:var(--red);background:#ff7c881c;border-radius:3px}
+.prompt .correct{color:#dfe8f4}
 .prompt .current{border-left:2px solid var(--accent);margin-left:-2px;animation:blink 1s steps(2,start) infinite}
 .prompt .pending{color:#657083}
+.prompt .error-flash{color:var(--red);background:#ff7c8830;border-radius:3px}
 @keyframes blink{to{border-color:transparent}}
 .typing-input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:text}
 .typing-hint{font-size:10px;color:#667184;margin-top:10px}.typing-hint kbd{font:10px 'DM Mono',monospace;background:#252c39;padding:2px 5px;border-radius:4px;color:#aeb8c8}
@@ -73,4 +71,4 @@ footer span:first-child{font-weight:800;letter-spacing:.4px;color:#929bad}
 .setting-row span{display:flex;flex-direction:column;gap:4px}.setting-row small,.dialog-note{color:var(--muted);font-size:10px}
 .setting-row input{accent-color:var(--accent);width:17px;height:17px}
 .dialog-note{margin:16px 0}.dialog-done{width:100%}
-@media(max-width:650px){.app-shell{padding:0 16px}.topbar{gap:20px}.top-nav{gap:15px}.welcome-row{padding-top:32px;align-items:flex-start;gap:12px;flex-direction:column}h1{font-size:32px}.practice-panel{padding:18px 14px}.stats-row{margin-top:23px}.stat{padding-left:10px}.stat strong{font-size:21px}.prompt{font-size:16px;line-height:2}.key-row{gap:3px}.key-row span{width:27px;height:29px;font-size:10px}.key-row span.space-key{width:170px}.practice-actions{align-items:flex-start;gap:14px;flex-direction:column}.action-buttons{width:100%}.action-buttons button{flex:1}.progress-cards{grid-template-columns:1fr}.section-heading{align-items:flex-start;gap:8px;flex-direction:column}footer{gap:12px;flex-direction:column}}
+@media(max-width:650px){.app-shell{padding:0 16px}.topbar{gap:20px}.top-nav{gap:15px}.welcome-row{padding-top:32px;align-items:flex-start;gap:12px;flex-direction:column}h1{font-size:32px}.practice-panel{padding:18px 14px}.stats-row{margin-top:23px}.stat{padding-left:10px}.stat strong{font-size:21px}.prompt{font-size:16px;line-height:2}.key-row{gap:3px}.key-row span{width:27px;height:29px;font-size:10px}.key-row span.space-key{width:170px}.practice-toolbar{align-items:flex-start;flex-direction:column}.practice-actions{align-items:flex-start;gap:14px;flex-direction:column}.action-buttons{width:100%}.action-buttons button{flex:1}.progress-cards{grid-template-columns:1fr}.section-heading{align-items:flex-start;gap:8px;flex-direction:column}footer{gap:12px;flex-direction:column}}
