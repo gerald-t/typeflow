@@ -284,3 +284,7 @@ footer span:first-child{font-weight:800;letter-spacing:.4px;color:#929bad}
   .typing-area{min-height:80px}
   .practice-toolbar .muted{font-size:9px}
 }
+
+
+/* A mistake marks the target character itself and remains visible after correction. */
+.prompt .has-error{color:var(--red)!important;background:#ff7c8830;border-radius:3px}
