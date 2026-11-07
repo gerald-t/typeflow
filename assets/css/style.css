@@ -388,3 +388,10 @@ footer span:first-child{font-weight:800;letter-spacing:.4px;color:#929bad}
 :root[data-theme="light"] .setting-row { border-color: var(--border); }
 :root[data-theme="light"] .setting-row input { accent-color: var(--accent); }
 :root[data-theme="light"] .typing-area:focus-visible { outline-color: #a59ae9; }
+
+
+/* The app is a single-page experience; keep the header focused on the brand and settings. */
+.topbar {
+  justify-content: space-between;
+  gap: 0;
+}
