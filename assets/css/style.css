@@ -395,3 +395,18 @@ footer span:first-child{font-weight:800;letter-spacing:.4px;color:#929bad}
   justify-content: space-between;
   gap: 0;
 }
+
+.stage-one-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
+.stage-card-heading{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.goal-control select{border:1px solid var(--border);border-radius:6px;padding:4px 6px;background:var(--panel2);color:var(--text);font-size:10px}
+.goal-track{height:7px;background:var(--panel2);border-radius:8px;overflow:hidden;margin:4px 0}
+.goal-track span{display:block;height:100%;width:0;background:var(--accent);border-radius:8px;transition:width .25s}
+.history-caption{font-size:9px;color:var(--muted)}
+.wpm-history{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));align-items:end;gap:8px;min-height:74px;padding-top:8px}
+.history-day{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:5px;min-width:0;height:68px}
+.history-bar-wrap{height:46px;width:100%;display:flex;align-items:flex-end;background:var(--panel2);border-radius:4px;overflow:hidden}
+.history-bar{display:block;width:100%;min-height:3px;background:var(--accent);border-radius:4px 4px 0 0}
+.history-day strong{font:9px 'DM Mono',monospace;color:var(--text)}.history-day small{font-size:8px;color:var(--muted)}
+.history-empty{grid-column:1/-1;align-self:center;color:var(--muted);font-size:10px}
+:root[data-theme="light"] .goal-track,:root[data-theme="light"] .history-bar-wrap{background:#e8eaf2}
+@media(max-width:650px){.stage-one-grid{grid-template-columns:1fr}}
