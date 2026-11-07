@@ -407,6 +407,22 @@
   $('#restart-button').addEventListener('click', () => { reset(false); focusTypingArea(); });
   $('#new-button').addEventListener('click', () => { reset(true); focusTypingArea(); });
 
+  const darkModeToggle = $('#dark-mode-toggle');
+  const savedTheme = loadSetting('typeflow-theme');
+  const initialTheme = savedTheme === 'light' ? 'light' : 'dark';
+
+  function applyTheme(theme) {
+    const normalizedTheme = theme === 'light' ? 'light' : 'dark';
+    document.documentElement.dataset.theme = normalizedTheme;
+    darkModeToggle.checked = normalizedTheme === 'dark';
+    saveSetting('typeflow-theme', normalizedTheme);
+  }
+
+  applyTheme(initialTheme);
+  darkModeToggle.addEventListener('change', event => {
+    applyTheme(event.target.checked ? 'dark' : 'light');
+  });
+
   $('#settings-button').addEventListener('click', () => $('#settings-dialog').showModal());
   $('#keyboard-toggle').checked = loadSetting('typeflow-show-keyboard') !== 'false';
   $('#keyboard-toggle').addEventListener('change', event => {
