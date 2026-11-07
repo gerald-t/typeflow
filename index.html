@@ -146,6 +146,18 @@
           <article class="progress-card"><span class="card-icon">◎</span><span class="card-label">AVERAGE ACCURACY</span><strong id="average-accuracy">—</strong><small>across completed sessions</small></article>
           <article class="progress-card"><span class="card-icon">◷</span><span class="card-label">TOTAL PRACTICE</span><strong id="total-time">0m</strong><small>time spent typing</small></article>
         </div>
+        <div class="stage-one-grid">
+          <article class="progress-card daily-goal-card">
+            <div class="stage-card-heading"><span class="card-label">DAILY GOAL</span><label class="goal-control" for="daily-goal-minutes"><select id="daily-goal-minutes" aria-label="Daily practice goal"><option value="5">5 min</option><option value="10" selected>10 min</option><option value="15">15 min</option><option value="20">20 min</option><option value="30">30 min</option></select></label></div>
+            <strong id="daily-goal-progress">0 / 10 min</strong>
+            <div class="goal-track" role="progressbar" aria-label="Daily practice goal progress" aria-valuemin="0" aria-valuemax="10" aria-valuenow="0" id="daily-goal-bar"><span id="daily-goal-fill"></span></div>
+            <small id="daily-goal-caption">Complete a practice session to get started.</small>
+          </article>
+          <article class="progress-card history-card">
+            <div class="stage-card-heading"><span class="card-label">7-DAY WPM HISTORY</span><small class="history-caption">Daily average</small></div>
+            <div class="wpm-history" id="wpm-history" aria-label="Typing speed over the last seven days"><span class="history-empty">Complete a session to start your history.</span></div>
+          </article>
+        </div>
       </section>
     </main>
 
