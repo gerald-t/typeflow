@@ -300,7 +300,10 @@
     saved.sessions += 1;
     saved.bestWpm = Math.max(saved.bestWpm, stats.wpm);
     saved.accuracyTotal += stats.accuracy;
-    saved.totalSeconds += Math.max(1, Math.round(elapsedSeconds()));
+    const sessionSeconds = Math.max(1, Math.round(elapsedSeconds()));
+    saved.totalSeconds += sessionSeconds;
+    recordDailyGoal(sessionSeconds);
+    recordWpm(stats);
     const unlockedLetter = checkForLetterUnlock();
     saveProgress();
     saveKeyStats();
@@ -328,6 +331,51 @@
     hintEl.innerHTML = 'start typing to begin · press <kbd>Tab</kbd> to restart';
     renderPrompt();
   }
+  const dailyGoal = loadJSON('typeflow-daily-goal', {});
+  const wpmHistory = loadJSON('typeflow-wpm-history', {});
+  const dateKey = (date = new Date()) => [date.getFullYear(), String(date.getMonth()+1).padStart(2,'0'), String(date.getDate()).padStart(2,'0')].join('-');
+  function recordDailyGoal(seconds) {
+    const today = dateKey();
+    dailyGoal.seconds = (dailyGoal.date === today ? toCount(dailyGoal.seconds) : 0) + seconds;
+    dailyGoal.date = today;
+    saveJSON('typeflow-daily-goal', dailyGoal);
+  }
+  function recordWpm(stats) {
+    const today = dateKey();
+    const entries = Array.isArray(wpmHistory[today]) ? wpmHistory[today] : [];
+    entries.push({wpm: stats.wpm, accuracy: stats.accuracy});
+    wpmHistory[today] = entries.slice(-20);
+    Object.keys(wpmHistory).sort().slice(0, Math.max(0, Object.keys(wpmHistory).length-30)).forEach(key => delete wpmHistory[key]);
+    saveJSON('typeflow-wpm-history', wpmHistory);
+  }
+  function renderStageOne() {
+    const select = $('#daily-goal-minutes');
+    const stored = Number(loadSetting('typeflow-daily-goal-minutes'));
+    const goal = [5,10,15,20,30].includes(stored) ? stored : 10;
+    select.value = String(goal);
+    const seconds = dailyGoal.date === dateKey() ? toCount(dailyGoal.seconds) : 0;
+    const minutes = Math.min(goal, Math.floor(seconds/60));
+    $('#daily-goal-progress').textContent = minutes + ' / ' + goal + ' min';
+    $('#daily-goal-fill').style.width = Math.min(100, seconds/(goal*60)*100) + '%';
+    $('#daily-goal-bar').setAttribute('aria-valuemax', String(goal));
+    $('#daily-goal-bar').setAttribute('aria-valuenow', String(minutes));
+    $('#daily-goal-caption').textContent = seconds >= goal*60 ? 'Daily goal complete — nice work!' : (seconds ? Math.floor(seconds/60) + ' min practised today. Keep it going.' : 'Complete a practice session to get started.');
+    const chart = $('#wpm-history');
+    chart.replaceChildren();
+    const days = Array.from({length:7}, (_,i) => {const d=new Date();d.setHours(0,0,0,0);d.setDate(d.getDate()-6+i);return {date:d,key:dateKey(d)};});
+    const values = days.map(d => (Array.isArray(wpmHistory[d.key]) ? wpmHistory[d.key] : []).map(x => toCount(x.wpm)));
+    const max = Math.max(1,...values.flat());
+    if (!values.some(v=>v.length)) {const empty=document.createElement('span');empty.className='history-empty';empty.textContent='Complete a session to start your history.';chart.appendChild(empty);return;}
+    days.forEach((d,i) => {
+      const v=values[i], avg=v.length?Math.round(v.reduce((a,b)=>a+b,0)/v.length):0;
+      const item=document.createElement('div');item.className='history-day';item.title=d.key+': '+(v.length?avg+' WPM average':'No sessions');
+      const value=document.createElement('strong');value.textContent=v.length?String(avg):'—';
+      const wrap=document.createElement('span');wrap.className='history-bar-wrap';
+      const bar=document.createElement('span');bar.className='history-bar';bar.style.height=v.length?Math.max(6,avg/max*100)+'%':'0%';wrap.appendChild(bar);
+      const label=document.createElement('small');label.textContent=d.date.toLocaleDateString(undefined,{weekday:'short'});
+      item.append(value,wrap,label);chart.appendChild(item);
+    });
+  }
   function renderProgress() {
     $('#session-count').textContent = String(saved.sessions);
     $('#best-wpm').textContent = saved.sessions ? String(saved.bestWpm) : '—';
@@ -336,6 +384,7 @@
     const totalMinutes = Math.floor(saved.totalSeconds / 60);
     $('#total-time').textContent = totalMinutes < 1 ? saved.totalSeconds + 's' : totalMinutes + 'm';
     renderLetterProgress();
+    renderStageOne();
   }
   function recordKeyStats(index, wasCorrect) {
     const key = (target[index] || '').toLowerCase();
@@ -423,6 +472,10 @@
     applyTheme(event.target.checked ? 'dark' : 'light');
   });
 
+  $('#daily-goal-minutes').addEventListener('change', event => {
+    const value = Number(event.target.value);
+    if ([5,10,15,20,30].includes(value)) { saveSetting('typeflow-daily-goal-minutes', String(value)); renderStageOne(); }
+  });
   $('#settings-button').addEventListener('click', () => $('#settings-dialog').showModal());
   $('#keyboard-toggle').checked = loadSetting('typeflow-show-keyboard') !== 'false';
   $('#keyboard-toggle').addEventListener('change', event => {
