@@ -578,17 +578,20 @@
     if (!isExpanded) settingsPanel.scrollIntoView({behavior: 'smooth', block: 'nearest'});
   });
   const keyboardToggle = $('#keyboard-toggle');
+  const practicePanel = $('#practice');
   function applyKeyboardVisibility(isVisible) {
-    keyboardToggle.checked = isVisible;
-    keyboardWrap.hidden = !isVisible;
-    $('#practice').classList.toggle('keyboard-hidden', !isVisible);
-    saveSetting('typeflow-show-keyboard', String(isVisible));
+    const shouldShow = Boolean(isVisible);
+    keyboardToggle.checked = shouldShow;
+    keyboardWrap.hidden = !shouldShow;
+    keyboardWrap.style.display = shouldShow ? '' : 'none';
+    keyboardWrap.setAttribute('aria-hidden', String(!shouldShow));
+    practicePanel.classList.toggle('keyboard-hidden', !shouldShow);
+    saveSetting('typeflow-show-keyboard', String(shouldShow));
   }
   const showKeyboard = loadSetting('typeflow-show-keyboard') !== 'false';
-  keyboardToggle.checked = showKeyboard;
   applyKeyboardVisibility(showKeyboard);
   keyboardToggle.addEventListener('change', event => {
-    applyKeyboardVisibility(event.target.checked);
+    applyKeyboardVisibility(event.currentTarget.checked);
   });
 
   renderProgress();
