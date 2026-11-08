@@ -426,8 +426,11 @@ footer span:first-child{font-weight:800;letter-spacing:.4px;color:#929bad}
 @media(max-width:650px){.exercise-length-control{margin:8px 0 12px;padding:10px 11px}}
 
 
-/* Expand the practice workspace when the virtual keyboard is hidden. */
-.keyboard-wrap[hidden] { display: none !important; }
+/* Keep the virtual keyboard toggle reliable at every viewport size. */
+.keyboard-wrap[hidden],
+.keyboard-wrap[style*="display: none"] {
+  display: none !important;
+}
 @media (min-width: 900px) {
   .practice-panel.keyboard-hidden {
     grid-template-columns: minmax(0, 1fr);
@@ -447,5 +450,10 @@ footer span:first-child{font-weight:800;letter-spacing:.4px;color:#929bad}
     max-width: 1050px;
     font-size: clamp(16px, 1.35vw, 21px);
     line-height: 1.9;
+  }
+}
+@media (max-width: 899px) {
+  .practice-panel.keyboard-hidden .typing-area {
+    min-height: 180px;
   }
 }
