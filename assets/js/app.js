@@ -26,8 +26,8 @@
     'request unique vivid voice value travel above over seven heavy village wave twelve yellow young yesterday beyond'
   ).split(' '))];
   const LETTER_MODES = Object.freeze({
-    default: Object.freeze({label: 'Default', order: 'eniarltosudy cghpmkbwfjvxqz'.replace(/ /g, '')}),
-    frequency: Object.freeze({label: 'Frequency', order: 'etaoinshrdlucmf wypvbgkjxqz'.replace(/ /g, '')})
+    default: Object.freeze({label: 'Default', order: 'eniarltosudycghpmkbwfjvxqz'}),
+    frequency: Object.freeze({label: 'Frequency', order: 'etaoinshrdlucmfwypvbgkjxqz'})
   });
   const LEGACY_LETTER_ORDER = 'neiartoslducpmhgbfwykvxjqz';
   const STARTER_LETTER_COUNT = 5;
