@@ -412,3 +412,13 @@ footer span:first-child{font-weight:800;letter-spacing:.4px;color:#929bad}
 .history-empty{grid-column:1/-1;align-self:center;color:var(--muted);font-size:10px}
 :root[data-theme="light"] .goal-track,:root[data-theme="light"] .history-bar-wrap{background:#e8eaf2}
 @media(max-width:650px){.stage-one-grid{grid-template-columns:1fr}}
+
+.exercise-length-control{display:grid;gap:8px;margin:10px 4px 14px;padding:12px 14px;border:1px solid var(--border);border-radius:9px;background:var(--panel)}
+.exercise-length-control label{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.exercise-length-control label span{display:grid;gap:3px}
+.exercise-length-control label strong{font-size:12px;color:var(--text);font-weight:600}
+.exercise-length-control label small,.exercise-length-range{font-size:11px;color:var(--muted)}
+.exercise-length-control output{font-family:'DM Mono',monospace;font-size:12px;color:var(--accent);font-weight:600;white-space:nowrap}
+.exercise-length-control input{width:100%;margin:2px 0;accent-color:var(--accent);cursor:pointer}
+.exercise-length-range{display:flex;justify-content:space-between}
+@media(max-width:650px){.exercise-length-control{margin:8px 0 12px;padding:10px 11px}}
