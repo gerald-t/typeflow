@@ -63,14 +63,18 @@ h2{font-size:20px;letter-spacing:-.5px;margin:0}
 .progress-card small{font-size:10px;color:var(--muted)}
 footer{display:flex;justify-content:space-between;border-top:1px solid #ffffff0d;padding:20px 0 28px;color:#606a7b;font-size:10px}
 footer span:first-child{font-weight:800;letter-spacing:.4px;color:#929bad}
-.settings-dialog{width:min(420px,calc(100% - 30px));background:#171c27;color:var(--text);border:1px solid var(--border);border-radius:15px;padding:22px;box-shadow:0 20px 80px #0009}
-.settings-dialog::backdrop{background:#05070bcc;backdrop-filter:blur(4px)}
-.dialog-heading{display:flex;justify-content:space-between;align-items:center;margin-bottom:15px}
-.dialog-heading h2{font-size:18px}
+.settings-panel{margin:0 0 20px;padding:18px 20px;background:var(--panel);border:1px solid var(--border);border-radius:12px}
+.settings-panel[hidden]{display:none}
+.settings-panel-heading{margin-bottom:8px}
+.settings-panel-heading h2{font-size:18px}
 .setting-row{display:flex;justify-content:space-between;align-items:center;padding:15px 0;border-bottom:1px solid var(--border);font-size:13px}
 .setting-row span{display:flex;flex-direction:column;gap:4px}.setting-row small,.dialog-note{color:var(--muted);font-size:10px}
 .setting-row input{accent-color:var(--accent);width:17px;height:17px}
-.dialog-note{margin:16px 0}.dialog-done{width:100%}
+.setting-select{max-width:132px;border:1px solid var(--border);border-radius:6px;padding:7px 9px;background:var(--panel2);color:var(--text);font:inherit;font-size:12px}
+.setting-select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.dialog-note{margin:16px 0 0}
+.settings-panel .exercise-length-control{margin:14px 0 0;padding:12px 0 0;border:0;border-top:1px solid var(--border);border-radius:0;background:transparent}
+@media(max-width:650px){.settings-panel{padding:15px 13px}}
 @media(max-width:650px){.app-shell{padding:0 16px}.topbar{gap:20px}.top-nav{gap:15px}.welcome-row{padding-top:32px;align-items:flex-start;gap:12px;flex-direction:column}h1{font-size:32px}.practice-panel{padding:18px 14px}.stats-row{margin-top:23px}.stat{padding-left:10px}.stat strong{font-size:21px}.prompt{font-size:16px;line-height:2}.key-row{gap:3px}.key-row span{width:27px;height:29px;font-size:10px}.key-row span.space-key{width:170px}.practice-toolbar{align-items:flex-start;flex-direction:column}.practice-actions{align-items:flex-start;gap:14px;flex-direction:column}.action-buttons{width:100%}.action-buttons button{flex:1}.progress-cards{grid-template-columns:1fr}.section-heading{align-items:flex-start;gap:8px;flex-direction:column}footer{gap:12px;flex-direction:column}}
 
 
@@ -410,3 +414,46 @@ footer span:first-child{font-weight:800;letter-spacing:.4px;color:#929bad}
 .history-empty{grid-column:1/-1;align-self:center;color:var(--muted);font-size:10px}
 :root[data-theme="light"] .goal-track,:root[data-theme="light"] .history-bar-wrap{background:#e8eaf2}
 @media(max-width:650px){.stage-one-grid{grid-template-columns:1fr}}
+
+.exercise-length-control{display:grid;gap:8px;margin:10px 4px 14px;padding:12px 14px;border:1px solid var(--border);border-radius:9px;background:var(--panel)}
+.exercise-length-control label{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.exercise-length-control label span{display:grid;gap:3px}
+.exercise-length-control label strong{font-size:12px;color:var(--text);font-weight:600}
+.exercise-length-control label small,.exercise-length-range{font-size:11px;color:var(--muted)}
+.exercise-length-control output{font-family:'DM Mono',monospace;font-size:12px;color:var(--accent);font-weight:600;white-space:nowrap}
+.exercise-length-control input{width:100%;margin:2px 0;accent-color:var(--accent);cursor:pointer}
+.exercise-length-range{display:flex;justify-content:space-between}
+@media(max-width:650px){.exercise-length-control{margin:8px 0 12px;padding:10px 11px}}
+
+
+/* Keep the virtual keyboard toggle reliable at every viewport size. */
+.keyboard-wrap[hidden],
+.keyboard-wrap[style*="display: none"] {
+  display: none !important;
+}
+@media (min-width: 900px) {
+  .practice-panel.keyboard-hidden {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "toolbar"
+      "learning"
+      "stats"
+      "typing"
+      "actions";
+  }
+  .practice-panel.keyboard-hidden .typing-area {
+    min-height: 180px;
+    padding-right: 14px;
+    padding-left: 14px;
+  }
+  .practice-panel.keyboard-hidden .prompt {
+    max-width: 1050px;
+    font-size: clamp(16px, 1.35vw, 21px);
+    line-height: 1.9;
+  }
+}
+@media (max-width: 899px) {
+  .practice-panel.keyboard-hidden .typing-area {
+    min-height: 180px;
+  }
+}

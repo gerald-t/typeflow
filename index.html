@@ -12,7 +12,7 @@
   <div class="app-shell">
     <header class="topbar">
       <a class="brand" href="index.html" aria-label="TypeFlow home"><span class="brand-mark">T</span><span>typeflow</span></a>
-      <button class="icon-button" id="settings-button" type="button" aria-label="Open settings" title="Settings">⚙</button>
+      <button class="icon-button" id="settings-button" type="button" aria-label="Open settings" aria-controls="settings-panel" aria-expanded="false" title="Settings">⚙</button>
     </header>
 
     <main>
@@ -23,6 +23,22 @@
           <p class="subheading">A little practice every day makes a big difference.</p>
         </div>
         <div class="streak-chip"><span class="streak-dot"></span><span><strong id="session-count">0</strong> sessions completed</span></div>
+      </section>
+
+            <section class="settings-panel" id="settings-panel" aria-labelledby="settings-heading" hidden>
+        <div class="settings-panel-heading"><div><p class="eyebrow">PREFERENCES</p><h2 id="settings-heading">Settings</h2></div></div>
+        <label class="setting-row"><span><strong>Virtual keyboard</strong><small>Show the on-screen key guide</small></span><input id="keyboard-toggle" type="checkbox" checked></label>
+        <label class="setting-row"><span><strong>Dark mode</strong><small>Use TypeFlow’s dark colour theme</small></span><input id="dark-mode-toggle" type="checkbox" role="switch" aria-label="Enable dark mode" checked></label>
+        <label class="setting-row"><span><strong>Letter learning order</strong><small>Choose how new letters are introduced</small></span><select id="letter-mode-select" class="setting-select" aria-label="Letter learning order"><option value="default">Default</option><option value="frequency">Frequency</option></select></label>
+        <div class="exercise-length-control">
+          <label for="exercise-word-count">
+            <span><strong>Practice text length</strong><small>Changes the current exercise immediately</small></span>
+            <output id="exercise-word-count-value" for="exercise-word-count">24 words</output>
+          </label>
+          <input id="exercise-word-count" type="range" min="24" max="48" step="1" value="24" aria-label="Practice text length, 24 to 48 words">
+          <div class="exercise-length-range" aria-hidden="true"><span>24 words</span><span>48 words</span></div>
+        </div>
+        <p class="dialog-note">Settings are saved in this browser.</p>
       </section>
 
       <section class="practice-panel" id="practice" aria-label="Typing practice">
@@ -163,15 +179,5 @@
 
     <footer><span>typeflow</span><span>Practice with purpose. Improve with every keystroke.</span></footer>
   </div>
-
-  <dialog id="settings-dialog" class="settings-dialog">
-    <form method="dialog">
-      <div class="dialog-heading"><h2>Settings</h2><button class="icon-button" type="submit" aria-label="Close settings">×</button></div>
-      <label class="setting-row"><span><strong>Virtual keyboard</strong><small>Show the on-screen key guide</small></span><input id="keyboard-toggle" type="checkbox" checked></label>
-      <label class="setting-row"><span><strong>Dark mode</strong><small>Use TypeFlow’s dark colour theme</small></span><input id="dark-mode-toggle" type="checkbox" role="switch" aria-label="Enable dark mode" checked></label>
-      <p class="dialog-note">Settings are saved in this browser.</p>
-      <button class="primary-button dialog-done" type="submit">Done</button>
-    </form>
-  </dialog>
 </body>
 </html>
