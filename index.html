@@ -51,6 +51,15 @@
           <div class="typing-hint" id="typing-hint">start typing to begin · press <kbd>Tab</kbd> to restart</div>
         </div>
 
+        <div class="exercise-length-control">
+          <label for="exercise-word-count">
+            <span><strong>Practice text length</strong><small>Applies to your next exercise</small></span>
+            <output id="exercise-word-count-value" for="exercise-word-count">24 words</output>
+          </label>
+          <input id="exercise-word-count" type="range" min="24" max="48" step="1" value="24" aria-label="Practice text length, 24 to 48 words">
+          <div class="exercise-length-range" aria-hidden="true"><span>24 words</span><span>48 words</span></div>
+        </div>
+
         <div class="keyboard-wrap">
           <div class="keyboard-legend" aria-label="Finger colour guide">
             <span><i class="finger-swatch finger-pinky"></i>Pinky</span>
