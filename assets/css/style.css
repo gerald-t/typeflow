@@ -424,3 +424,28 @@ footer span:first-child{font-weight:800;letter-spacing:.4px;color:#929bad}
 .exercise-length-control input{width:100%;margin:2px 0;accent-color:var(--accent);cursor:pointer}
 .exercise-length-range{display:flex;justify-content:space-between}
 @media(max-width:650px){.exercise-length-control{margin:8px 0 12px;padding:10px 11px}}
+
+
+/* Expand the practice workspace when the virtual keyboard is hidden. */
+.keyboard-wrap[hidden] { display: none !important; }
+@media (min-width: 900px) {
+  .practice-panel.keyboard-hidden {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "toolbar"
+      "learning"
+      "stats"
+      "typing"
+      "actions";
+  }
+  .practice-panel.keyboard-hidden .typing-area {
+    min-height: 180px;
+    padding-right: 14px;
+    padding-left: 14px;
+  }
+  .practice-panel.keyboard-hidden .prompt {
+    max-width: 1050px;
+    font-size: clamp(16px, 1.35vw, 21px);
+    line-height: 1.9;
+  }
+}
