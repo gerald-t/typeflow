@@ -508,6 +508,8 @@
     exerciseWordCount = Math.min(MAX_EXERCISE_WORDS, Math.max(MIN_EXERCISE_WORDS, value));
     exerciseLengthValue.textContent = exerciseWordCount + ' words';
     saveSetting('typeflow-exercise-words', String(exerciseWordCount));
+    reset(true);
+    focusTypingArea();
   });
 
   $('#restart-button').addEventListener('click', () => { reset(false); focusTypingArea(); });
@@ -565,7 +567,15 @@
     focusTypingArea();
   });
 
-  $('#settings-button').addEventListener('click', () => $('#settings-dialog').showModal());
+  const settingsButton = $('#settings-button');
+  const settingsPanel = $('#settings-panel');
+  settingsButton.addEventListener('click', () => {
+    const isExpanded = settingsButton.getAttribute('aria-expanded') === 'true';
+    settingsButton.setAttribute('aria-expanded', String(!isExpanded));
+    settingsButton.setAttribute('aria-label', isExpanded ? 'Open settings' : 'Close settings');
+    settingsPanel.hidden = isExpanded;
+    if (!isExpanded) settingsPanel.scrollIntoView({behavior: 'smooth', block: 'nearest'});
+  });
   $('#keyboard-toggle').checked = loadSetting('typeflow-show-keyboard') !== 'false';
   $('#keyboard-toggle').addEventListener('change', event => {
     saveSetting('typeflow-show-keyboard', String(event.target.checked));
