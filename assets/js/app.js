@@ -9,6 +9,7 @@
   const errorsEl = $('#errors');
   const hintEl = $('#typing-hint');
   const keyboard = $('#keyboard');
+  const keyboardWrap = $('.keyboard-wrap');
 
   const commonWords = [...new Set((
     'the be to of and a in that have it for not on with he as you do at this but his by from they we say her she or ' +
@@ -576,12 +577,19 @@
     settingsPanel.hidden = isExpanded;
     if (!isExpanded) settingsPanel.scrollIntoView({behavior: 'smooth', block: 'nearest'});
   });
-  $('#keyboard-toggle').checked = loadSetting('typeflow-show-keyboard') !== 'false';
-  $('#keyboard-toggle').addEventListener('change', event => {
-    saveSetting('typeflow-show-keyboard', String(event.target.checked));
-    keyboard.hidden = !event.target.checked;
+  const keyboardToggle = $('#keyboard-toggle');
+  function applyKeyboardVisibility(isVisible) {
+    keyboardToggle.checked = isVisible;
+    keyboardWrap.hidden = !isVisible;
+    $('#practice').classList.toggle('keyboard-hidden', !isVisible);
+    saveSetting('typeflow-show-keyboard', String(isVisible));
+  }
+  const showKeyboard = loadSetting('typeflow-show-keyboard') !== 'false';
+  keyboardToggle.checked = showKeyboard;
+  applyKeyboardVisibility(showKeyboard);
+  keyboardToggle.addEventListener('change', event => {
+    applyKeyboardVisibility(event.target.checked);
   });
-  keyboard.hidden = !$('#keyboard-toggle').checked;
 
   renderProgress();
   reset(true);
