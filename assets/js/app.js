@@ -34,7 +34,12 @@
   const UNLOCK_MIN_SAMPLES = 12;
   const UNLOCK_ACCURACY = 0.90;
   const MIN_KEY_SAMPLES = 8;
-  const EXERCISE_WORDS = 24;
+  const MIN_EXERCISE_WORDS = 24;
+  const MAX_EXERCISE_WORDS = 48;
+  const savedExerciseWords = Number(loadSetting('typeflow-exercise-words'));
+  let exerciseWordCount = Number.isInteger(savedExerciseWords)
+    ? Math.min(MAX_EXERCISE_WORDS, Math.max(MIN_EXERCISE_WORDS, savedExerciseWords))
+    : MIN_EXERCISE_WORDS;
   const additionalWords = (
     'near era rain ear are air an in nine inner nearer rear rare earn rein ire area arena eerie rani ' +
     'aerie airier rainier ranee erne ran nae nee anna anne erin irene ' +
@@ -231,7 +236,7 @@
     );
     const totalWeight = weights.reduce((sum, weight) => sum + weight, 0);
     const words = [];
-    for (let i = 0; i < EXERCISE_WORDS; i++) {
+    for (let i = 0; i < exerciseWordCount; i++) {
       words.push(pickWeighted(usableWords, weights, totalWeight));
     }
     return words.join(' ');
@@ -493,6 +498,18 @@
   }
 
   typingArea.addEventListener('click', focusTypingArea);
+  const exerciseLengthSlider = $('#exercise-word-count');
+  const exerciseLengthValue = $('#exercise-word-count-value');
+  exerciseLengthSlider.value = String(exerciseWordCount);
+  exerciseLengthValue.textContent = exerciseWordCount + ' words';
+  exerciseLengthSlider.addEventListener('input', event => {
+    const value = Number(event.target.value);
+    if (!Number.isInteger(value)) return;
+    exerciseWordCount = Math.min(MAX_EXERCISE_WORDS, Math.max(MIN_EXERCISE_WORDS, value));
+    exerciseLengthValue.textContent = exerciseWordCount + ' words';
+    saveSetting('typeflow-exercise-words', String(exerciseWordCount));
+  });
+
   $('#restart-button').addEventListener('click', () => { reset(false); focusTypingArea(); });
   $('#new-button').addEventListener('click', () => { reset(true); focusTypingArea(); });
 
