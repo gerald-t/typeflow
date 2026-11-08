@@ -25,7 +25,11 @@
     'jacket juice join judge major object enjoy project kind kick knock market thank quick quite queen equal square ' +
     'request unique vivid voice value travel above over seven heavy village wave twelve yellow young yesterday beyond'
   ).split(' '))];
-  const LETTER_ORDER = 'neiartoslducpmhgbfwykvxjqz';
+  const LETTER_MODES = Object.freeze({
+    default: Object.freeze({label: 'Default', order: 'eniarltosudy cghpmkbwfjvxqz'.replace(/ /g, '')}),
+    frequency: Object.freeze({label: 'Frequency', order: 'etaoinshrdlucmf wypvbgkjxqz'.replace(/ /g, '')})
+  });
+  const LEGACY_LETTER_ORDER = 'neiartoslducpmhgbfwykvxjqz';
   const STARTER_LETTER_COUNT = 5;
   const UNLOCK_MIN_SAMPLES = 12;
   const UNLOCK_ACCURACY = 0.90;
@@ -74,19 +78,48 @@
     accuracyTotal: toCount(storedProgress.accuracyTotal),
     totalSeconds: toCount(storedProgress.totalSeconds)
   };
-  const storedLearning = loadJSON('typeflow-learning-state', {});
-  const storedUnlockCount = Number(storedLearning.unlockedCount);
-  let unlockedCount = Number.isInteger(storedUnlockCount)
-    ? Math.min(LETTER_ORDER.length, Math.max(STARTER_LETTER_COUNT, storedUnlockCount))
-    : STARTER_LETTER_COUNT;
-  const learningStats = {};
-  LETTER_ORDER.split('').forEach(letter => {
-    const stat = storedLearning.stats && storedLearning.stats[letter];
-    learningStats[letter] = {
-      hits: stat && typeof stat === 'object' ? toCount(stat.hits) : 0,
-      errors: stat && typeof stat === 'object' ? toCount(stat.errors) : 0
+  const storedModeProgress = loadJSON('typeflow-letter-progress', {});
+  const legacyLearning = loadJSON('typeflow-learning-state', {});
+  const requestedMode = loadSetting('typeflow-letter-mode');
+  let currentMode = Object.prototype.hasOwnProperty.call(LETTER_MODES, requestedMode)
+    ? requestedMode
+    : 'default';
+
+  function normalizeModeProgress(order, rawState = {}) {
+    const storedLetters = Array.isArray(rawState.unlockedLetters)
+      ? rawState.unlockedLetters.filter(letter => order.includes(letter))
+      : order.slice(0, Number.isInteger(Number(rawState.unlockedCount))
+        ? Math.min(order.length, Math.max(STARTER_LETTER_COUNT, Number(rawState.unlockedCount)))
+        : STARTER_LETTER_COUNT).split('');
+    const unlocked = new Set([...order.slice(0, STARTER_LETTER_COUNT), ...storedLetters]);
+    const stats = {};
+    order.split('').forEach(letter => {
+      const stat = rawState.stats && rawState.stats[letter];
+      stats[letter] = {
+        hits: stat && typeof stat === 'object' ? toCount(stat.hits) : 0,
+        errors: stat && typeof stat === 'object' ? toCount(stat.errors) : 0
+      };
+    });
+    return {
+      unlockedLetters: order.split('').filter(letter => unlocked.has(letter)),
+      stats
     };
-  });
+  }
+
+  const legacyCount = Number.isInteger(Number(legacyLearning.unlockedCount))
+    ? Math.min(LEGACY_LETTER_ORDER.length, Math.max(STARTER_LETTER_COUNT, Number(legacyLearning.unlockedCount)))
+    : STARTER_LETTER_COUNT;
+  const legacyDefaultState = {
+    unlockedLetters: LEGACY_LETTER_ORDER.slice(0, legacyCount).split(''),
+    stats: legacyLearning.stats || {}
+  };
+  const modeProgress = {
+    default: normalizeModeProgress(LETTER_MODES.default.order, storedModeProgress.default || legacyDefaultState),
+    frequency: normalizeModeProgress(LETTER_MODES.frequency.order, storedModeProgress.frequency || {})
+  };
+  let unlockedLetters = new Set(modeProgress[currentMode].unlockedLetters);
+  let learningStats = modeProgress[currentMode].stats;
+  saveSetting('typeflow-letter-mode', currentMode);
 
   let target = '';
   let exerciseFocus = 'n';
@@ -108,10 +141,17 @@
     keyStatsDirty = false;
   }
   function activeLetters() {
-    return LETTER_ORDER.slice(0, unlockedCount);
+    return LETTER_MODES[currentMode].order.split('').filter(letter => unlockedLetters.has(letter)).join('');
+  }
+  function nextLockedLetter() {
+    return LETTER_MODES[currentMode].order.split('').find(letter => !unlockedLetters.has(letter)) || '';
   }
   function saveLearningState() {
-    saveJSON('typeflow-learning-state', {unlockedCount, stats: learningStats});
+    modeProgress[currentMode] = {
+      unlockedLetters: LETTER_MODES[currentMode].order.split('').filter(letter => unlockedLetters.has(letter)),
+      stats: learningStats
+    };
+    saveJSON('typeflow-letter-progress', modeProgress);
   }
   function weakKeys() {
     return activeLetters().split('')
@@ -204,36 +244,36 @@
     saveLearningState();
   }
   function renderLetterProgress() {
-    const active = activeLetters();
-    $('#letter-count').textContent = unlockedCount + ' / 26 LETTERS UNLOCKED';
+    const order = LETTER_MODES[currentMode].order;
+    const nextLetter = nextLockedLetter();
+    $('#letter-count').textContent = unlockedLetters.size + ' / 26 LETTERS UNLOCKED';
     $('#focus-key-label').textContent = 'Focus key: ' + exerciseFocus.toUpperCase();
-    $('#next-letter').textContent = unlockedCount < LETTER_ORDER.length
-      ? 'Next letter: ' + LETTER_ORDER[unlockedCount].toUpperCase()
-      : 'All letters unlocked';
+    $('#next-letter').textContent = nextLetter ? 'Next letter: ' + nextLetter.toUpperCase() : 'All letters unlocked';
     const chips = $('#letter-chips');
     chips.replaceChildren();
-    LETTER_ORDER.split('').forEach((letter, index) => {
+    order.split('').forEach(letter => {
+      const isUnlocked = unlockedLetters.has(letter);
       const chip = document.createElement('span');
-      chip.className = 'letter-chip' + (index < unlockedCount ? ' is-unlocked' : '');
+      chip.className = 'letter-chip' + (isUnlocked ? ' is-unlocked' : '');
       chip.textContent = letter.toUpperCase();
-      chip.title = index < unlockedCount ? 'Unlocked letter ' + letter.toUpperCase() : 'Locked letter ' + letter.toUpperCase();
+      chip.title = isUnlocked ? 'Unlocked letter ' + letter.toUpperCase() : 'Locked letter ' + letter.toUpperCase();
       chips.appendChild(chip);
     });
-    $('#letter-note').textContent = unlockedCount < LETTER_ORDER.length
+    $('#letter-note').textContent = nextLetter
       ? 'Practise each unlocked letter. A new letter unlocks when every active letter has at least ' +
         UNLOCK_MIN_SAMPLES + ' attempts and ' + Math.round(UNLOCK_ACCURACY * 100) + '% accuracy.'
       : 'All letters are unlocked. Keep practising to strengthen your slowest keys.';
   }
   function checkForLetterUnlock() {
-    if (unlockedCount >= LETTER_ORDER.length) return '';
+    const newLetter = nextLockedLetter();
+    if (!newLetter) return '';
     const allReady = activeLetters().split('').every(letter => {
       const stat = learningStats[letter];
       const samples = stat.hits + stat.errors;
       return samples >= UNLOCK_MIN_SAMPLES && samples > 0 && (stat.hits / samples) >= UNLOCK_ACCURACY;
     });
     if (!allReady) return '';
-    const newLetter = LETTER_ORDER[unlockedCount];
-    unlockedCount += 1;
+    unlockedLetters.add(newLetter);
     exerciseFocus = focusLetter();
     saveLearningState();
     renderLetterProgress();
@@ -476,6 +516,38 @@
     const value = Number(event.target.value);
     if ([5,10,15,20,30].includes(value)) { saveSetting('typeflow-daily-goal-minutes', String(value)); renderStageOne(); }
   });
+  const letterModeSelect = $('#letter-mode-select');
+  letterModeSelect.value = currentMode;
+  letterModeSelect.addEventListener('change', event => {
+    const nextMode = event.target.value;
+    if (!Object.prototype.hasOwnProperty.call(LETTER_MODES, nextMode) || nextMode === currentMode) {
+      letterModeSelect.value = currentMode;
+      return;
+    }
+    if (unlockedLetters.size > STARTER_LETTER_COUNT) {
+      const destinationHasProgress = modeProgress[nextMode].unlockedLetters.length > STARTER_LETTER_COUNT;
+      const destinationMessage = destinationHasProgress
+        ? 'You will resume that mode from its saved progress.'
+        : 'That mode will start from its first five letters (E onward).';
+      const message = 'You have unlocked ' + unlockedLetters.size + ' letters in ' +
+        LETTER_MODES[currentMode].label + ' mode. Your progress will be saved.\n\n' +
+        'Switch to ' + LETTER_MODES[nextMode].label + ' mode? ' + destinationMessage;
+      if (!window.confirm(message)) {
+        letterModeSelect.value = currentMode;
+        return;
+      }
+    }
+    saveLearningState();
+    currentMode = nextMode;
+    unlockedLetters = new Set(modeProgress[currentMode].unlockedLetters);
+    learningStats = modeProgress[currentMode].stats;
+    saveSetting('typeflow-letter-mode', currentMode);
+    letterModeSelect.value = currentMode;
+    renderProgress();
+    reset(true);
+    focusTypingArea();
+  });
+
   $('#settings-button').addEventListener('click', () => $('#settings-dialog').showModal());
   $('#keyboard-toggle').checked = loadSetting('typeflow-show-keyboard') !== 'false';
   $('#keyboard-toggle').addEventListener('change', event => {
