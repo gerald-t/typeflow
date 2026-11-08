@@ -1,0 +1,36 @@
+name: TypeFlow CI
+
+on:
+  push:
+    branches:
+      - "**"
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: typeflow-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Validate TypeFlow
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Check JavaScript syntax
+        run: node --check assets/js/app.js
+
+      - name: Check essential project files
+        run: |
+          test -f index.html
+          test -f assets/js/app.js
+          test -f assets/css/style.css
