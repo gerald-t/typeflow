@@ -23,6 +23,8 @@ TypeFlow is a lightweight, adaptive typing-practice website built with HTML, CSS
 - `index.html` — main website page
 - `assets/css/style.css` — page styling
 - `assets/js/app.js` — typing practice and browser-side features
+- `assets/js/learning.js` — reusable adaptive-learning logic
+- `tests/learning.test.js` — automated learning regression tests
 - `assets/images/` — images used by the website, when needed
 - `.github/workflows/ci.yml` — automated GitHub Actions checks
 - `.gitignore` — files excluded from Git

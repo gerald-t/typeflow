@@ -234,13 +234,17 @@
       chips.appendChild(chip);
     });
     const focusMetrics = TypeFlowLearning.performance(learningStats[exerciseFocus]);
+    const weakLetters = weakKeys();
     const focusSummary = focusMetrics.samples
       ? ' Adaptive focus: ' + exerciseFocus.toUpperCase() + ' is at ' + Math.round(focusMetrics.recentAccuracy * 100) + '% recent and ' + Math.round(focusMetrics.lifetimeAccuracy * 100) + '% overall accuracy.'
       : ' Adaptive focus is building a baseline for ' + exerciseFocus.toUpperCase() + '.';
+    const weakSummary = weakLetters.length
+      ? ' Extra practice: ' + weakLetters.map(letter => letter.toUpperCase()).join(', ') + '.'
+      : '';
     $('#letter-note').textContent = (nextLetter
       ? 'Practise each unlocked letter. A new letter unlocks when every active letter has at least ' +
         UNLOCK_MIN_SAMPLES + ' attempts and ' + Math.round(UNLOCK_ACCURACY * 100) + '% accuracy.'
-      : 'All letters are unlocked. Keep practising to strengthen your slowest keys.') + focusSummary;
+      : 'All letters are unlocked. Keep practising to strengthen your slowest keys.') + focusSummary + weakSummary;
   }
   function checkForLetterUnlock() {
     const newLetter = nextLockedLetter();
@@ -317,6 +321,7 @@
   }
   function resumePracticeSession() {
     if (!sessionStarted || finished || startedAt || document.visibilityState === 'hidden') return;
+    renderProgress();
     startedAt = Date.now();
     statsInterval = window.setInterval(updateStats, 250);
   }
