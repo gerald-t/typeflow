@@ -2,6 +2,7 @@
   'use strict';
 
   const $ = (selector) => document.querySelector(selector);
+  const TypeFlowLearning = window.TypeFlowLearning;
   const promptEl = $('#prompt');
   const typingArea = $('#typing-area');
   const wpmEl = $('#wpm');
@@ -71,7 +72,9 @@
   function saveSetting(key, value) {
     try { localStorage.setItem(key, value); } catch (error) { /* storage unavailable */ }
   }
-  const toCount = (value) => Number.isFinite(Number(value)) && Number(value) > 0 ? Number(value) : 0;
+  const toCount = (value) => Number.isFinite(Number(value)) && Number(value) > 0
+    ? Math.min(1000000000, Math.floor(Number(value)))
+    : 0;
 
   const keyStats = {};
   Object.entries(loadJSON('typeflow-key-stats', {})).forEach(([key, stat]) => {
@@ -102,8 +105,7 @@
     order.split('').forEach(letter => {
       const stat = rawState.stats && rawState.stats[letter];
       stats[letter] = {
-        hits: stat && typeof stat === 'object' ? toCount(stat.hits) : 0,
-        errors: stat && typeof stat === 'object' ? toCount(stat.errors) : 0
+        ...TypeFlowLearning.normalizeStat(stat)
       };
     });
     return {
@@ -131,6 +133,9 @@
   let exerciseFocus = 'n';
   let typed = '';
   let startedAt = null;
+  let activeElapsedMs = 0;
+  let persistedElapsedSeconds = 0;
+  let sessionStarted = false;
   let statsInterval = null;
   let finished = false;
   let correctChars = 0;
@@ -160,26 +165,10 @@
     saveJSON('typeflow-letter-progress', modeProgress);
   }
   function weakKeys() {
-    return activeLetters().split('')
-      .map(letter => [letter, learningStats[letter]])
-      .filter(([, stat]) => stat.hits + stat.errors >= MIN_KEY_SAMPLES)
-      .map(([letter, stat]) => [letter, stat.errors / (stat.hits + stat.errors)])
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 4)
-      .map(([letter]) => letter);
+    return TypeFlowLearning.weakKeys(activeLetters(), learningStats, MIN_KEY_SAMPLES, 4);
   }
   function focusLetter() {
-    return activeLetters().split('')
-      .map((letter, index) => {
-        const stat = learningStats[letter];
-        const samples = stat.hits + stat.errors;
-        return {letter, index, samples, accuracy: samples ? stat.hits / samples : 0};
-      })
-      .sort((a, b) => {
-        if (a.samples === 0 && b.samples > 0) return -1;
-        if (b.samples === 0 && a.samples > 0) return 1;
-        return a.accuracy - b.accuracy || a.index - b.index;
-      })[0].letter;
+    return TypeFlowLearning.selectFocusLetter(activeLetters(), learningStats);
   }
   function pickWeighted(words, weights, total) {
     let roll = Math.random() * total;
@@ -190,27 +179,7 @@
     return words[words.length - 1];
   }
   function makePseudoWord(allowed, focus) {
-    const vowels = allowed.filter(letter => 'aeiou'.includes(letter));
-    const consonants = allowed.filter(letter => !'aeiou'.includes(letter));
-    const focusType = 'aeiou'.includes(focus) ? 'V' : 'C';
-    const patterns = [
-      ['C', 'V', 'C'],
-      ['V', 'C', 'V'],
-      ['C', 'V', 'C', 'V'],
-      ['V', 'C', 'V', 'C'],
-      ['C', 'V', 'C', 'V', 'C'],
-      ['V', 'C', 'V', 'C', 'V']
-    ];
-    const pattern = patterns[Math.floor(Math.random() * patterns.length)];
-    const focusPositions = pattern
-      .map((type, index) => type === focusType ? index : -1)
-      .filter(index => index >= 0);
-    const focusPosition = focusPositions[Math.floor(Math.random() * focusPositions.length)];
-    return pattern.map((type, index) => {
-      if (index === focusPosition) return focus;
-      const choices = type === 'V' ? vowels : consonants;
-      return choices[Math.floor(Math.random() * choices.length)];
-    }).join('');
+    return TypeFlowLearning.makePseudoWord(allowed, focus);
   }
 
   function pickExercise() {
@@ -231,10 +200,7 @@
         usableWords.push(makePseudoWord(allowedLetters.split(''), focus));
       }
     }
-    const weak = weakKeys();
-    const weights = usableWords.map(word =>
-      1 + [...word].filter(char => weak.includes(char)).length * 2
-    );
+    const weights = TypeFlowLearning.wordWeights(usableWords, learningStats);
     const totalWeight = weights.reduce((sum, weight) => sum + weight, 0);
     const words = [];
     for (let i = 0; i < exerciseWordCount; i++) {
@@ -245,8 +211,7 @@
   function recordLearningSample(letter, wasCorrect) {
     const stat = learningStats[letter];
     if (!stat) return;
-    if (wasCorrect) stat.hits += 1;
-    else stat.errors += 1;
+    TypeFlowLearning.recordSample(stat, wasCorrect);
     saveLearningState();
   }
   function renderLetterProgress() {
@@ -262,13 +227,20 @@
       const chip = document.createElement('span');
       chip.className = 'letter-chip' + (isUnlocked ? ' is-unlocked' : '');
       chip.textContent = letter.toUpperCase();
-      chip.title = isUnlocked ? 'Unlocked letter ' + letter.toUpperCase() : 'Locked letter ' + letter.toUpperCase();
+      const metrics = TypeFlowLearning.performance(learningStats[letter]);
+      chip.title = isUnlocked
+        ? letter.toUpperCase() + ' · ' + metrics.samples + ' attempts · ' + Math.round(metrics.lifetimeAccuracy * 100) + '% overall · ' + Math.round(metrics.recentAccuracy * 100) + '% recent'
+        : 'Locked letter ' + letter.toUpperCase();
       chips.appendChild(chip);
     });
-    $('#letter-note').textContent = nextLetter
+    const focusMetrics = TypeFlowLearning.performance(learningStats[exerciseFocus]);
+    const focusSummary = focusMetrics.samples
+      ? ' Adaptive focus: ' + exerciseFocus.toUpperCase() + ' is at ' + Math.round(focusMetrics.recentAccuracy * 100) + '% recent and ' + Math.round(focusMetrics.lifetimeAccuracy * 100) + '% overall accuracy.'
+      : ' Adaptive focus is building a baseline for ' + exerciseFocus.toUpperCase() + '.';
+    $('#letter-note').textContent = (nextLetter
       ? 'Practise each unlocked letter. A new letter unlocks when every active letter has at least ' +
         UNLOCK_MIN_SAMPLES + ' attempts and ' + Math.round(UNLOCK_ACCURACY * 100) + '% accuracy.'
-      : 'All letters are unlocked. Keep practising to strengthen your slowest keys.';
+      : 'All letters are unlocked. Keep practising to strengthen your slowest keys.') + focusSummary;
   }
   function checkForLetterUnlock() {
     const newLetter = nextLockedLetter();
@@ -321,7 +293,32 @@
     });
   }
   function elapsedSeconds() {
-    return startedAt ? Math.max(0.1, (Date.now() - startedAt) / 1000) : 0;
+    const activeMs = activeElapsedMs + (startedAt ? Date.now() - startedAt : 0);
+    return activeMs > 0 ? Math.max(0.1, activeMs / 1000) : 0;
+  }
+  function persistPracticeTime(updateUi = true) {
+    const elapsed = Math.floor(elapsedSeconds());
+    const additionalSeconds = Math.max(0, elapsed - persistedElapsedSeconds);
+    if (!additionalSeconds) return;
+    persistedElapsedSeconds = elapsed;
+    saved.totalSeconds += additionalSeconds;
+    recordDailyGoal(additionalSeconds);
+    saveProgress();
+    if (updateUi) renderProgress();
+  }
+  function pausePracticeSession(updateUi = true) {
+    if (startedAt) {
+      activeElapsedMs += Date.now() - startedAt;
+      startedAt = null;
+      window.clearInterval(statsInterval);
+      updateStats();
+    }
+    persistPracticeTime(updateUi);
+  }
+  function resumePracticeSession() {
+    if (!sessionStarted || finished || startedAt || document.visibilityState === 'hidden') return;
+    startedAt = Date.now();
+    statsInterval = window.setInterval(updateStats, 250);
   }
   function updateStats() {
     const minutes = elapsedSeconds() / 60;
@@ -333,7 +330,8 @@
     return {wpm, accuracy};
   }
   function start() {
-    if (startedAt || finished) return;
+    if (sessionStarted || finished) return;
+    sessionStarted = true;
     startedAt = Date.now();
     hintEl.textContent = 'keep going · type each highlighted character correctly';
     statsInterval = window.setInterval(updateStats, 250);
@@ -343,12 +341,10 @@
     finished = true;
     window.clearInterval(statsInterval);
     const stats = updateStats();
+    pausePracticeSession(false);
     saved.sessions += 1;
     saved.bestWpm = Math.max(saved.bestWpm, stats.wpm);
     saved.accuracyTotal += stats.accuracy;
-    const sessionSeconds = Math.max(1, Math.round(elapsedSeconds()));
-    saved.totalSeconds += sessionSeconds;
-    recordDailyGoal(sessionSeconds);
     recordWpm(stats);
     const unlockedLetter = checkForLetterUnlock();
     saveProgress();
@@ -357,14 +353,21 @@
     hintEl.textContent = unlockedLetter
       ? 'Great work! New letter unlocked: ' + unlockedLetter + ' · choose New exercise to practise it'
       : 'exercise complete · choose New exercise to continue';
+    $('#practice-status').textContent = unlockedLetter
+      ? 'Exercise complete. New letter unlocked: ' + unlockedLetter + '.'
+      : 'Exercise complete.';
   }
   function reset(newExercise = false) {
+    pausePracticeSession(false);
     window.clearInterval(statsInterval);
     saveKeyStats();
     target = newExercise || !target ? pickExercise() : target;
     renderLetterProgress();
     typed = '';
     startedAt = null;
+    activeElapsedMs = 0;
+    persistedElapsedSeconds = 0;
+    sessionStarted = false;
     finished = false;
     correctChars = 0;
     keystrokes = 0;
@@ -374,11 +377,21 @@
     wpmEl.textContent = '0';
     accuracyEl.innerHTML = '100<span class="unit">%</span>';
     errorsEl.textContent = '0';
-    hintEl.innerHTML = 'start typing to begin · press <kbd>Tab</kbd> to restart';
+    hintEl.innerHTML = 'start typing to begin · press <kbd>Escape</kbd> to restart';
     renderPrompt();
   }
-  const dailyGoal = loadJSON('typeflow-daily-goal', {});
-  const wpmHistory = loadJSON('typeflow-wpm-history', {});
+  const rawDailyGoal = loadJSON('typeflow-daily-goal', {});
+  const dailyGoal = {
+    date: typeof rawDailyGoal.date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(rawDailyGoal.date) ? rawDailyGoal.date : '',
+    seconds: toCount(rawDailyGoal.seconds)
+  };
+  const rawWpmHistory = loadJSON('typeflow-wpm-history', {});
+  const wpmHistory = {};
+  Object.entries(rawWpmHistory).slice(-30).forEach(([date, entries]) => {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || !Array.isArray(entries)) return;
+    wpmHistory[date] = entries.slice(-20).filter(entry => entry && typeof entry === 'object' && !Array.isArray(entry))
+      .map(entry => ({wpm: toCount(entry.wpm), accuracy: Math.min(100, toCount(entry.accuracy))}));
+  });
   const dateKey = (date = new Date()) => [date.getFullYear(), String(date.getMonth()+1).padStart(2,'0'), String(date.getDate()).padStart(2,'0')].join('-');
   function recordDailyGoal(seconds) {
     const today = dateKey();
@@ -468,7 +481,7 @@
   }
 
   typingArea.addEventListener('keydown', event => {
-    if (event.key === 'Tab') {
+    if (event.key === 'Escape') {
       event.preventDefault();
       reset(false);
       focusTypingArea();
@@ -492,7 +505,15 @@
     handleTypedCharacter(event.key);
   });
 
-  window.addEventListener('pagehide', saveKeyStats);
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') pausePracticeSession(false);
+    else resumePracticeSession();
+  });
+  window.addEventListener('pagehide', () => {
+    pausePracticeSession(false);
+    saveKeyStats();
+  });
+  window.addEventListener('pageshow', resumePracticeSession);
 
   function focusTypingArea() {
     typingArea.focus({preventScroll: true});
@@ -510,7 +531,6 @@
     exerciseLengthValue.textContent = exerciseWordCount + ' words';
     saveSetting('typeflow-exercise-words', String(exerciseWordCount));
     reset(true);
-    focusTypingArea();
   });
 
   $('#restart-button').addEventListener('click', () => { reset(false); focusTypingArea(); });
@@ -575,7 +595,10 @@
     settingsButton.setAttribute('aria-expanded', String(!isExpanded));
     settingsButton.setAttribute('aria-label', isExpanded ? 'Open settings' : 'Close settings');
     settingsPanel.hidden = isExpanded;
-    if (!isExpanded) settingsPanel.scrollIntoView({behavior: 'smooth', block: 'nearest'});
+    if (!isExpanded) settingsPanel.scrollIntoView({
+      behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
+      block: 'nearest'
+    });
   });
   const keyboardToggle = $('#keyboard-toggle');
   const practicePanel = $('#practice');

@@ -7,11 +7,13 @@ TypeFlow is a lightweight, adaptive typing-practice website built with HTML, CSS
 - Untimed, strict character-by-character typing exercises. Incorrect keys do not advance the cursor, and accepted characters cannot be erased with Backspace.
 - Progressive letter learning, starting with five letters and unlocking the next letter when every active letter has at least 12 attempts and 90% accuracy.
 - Two learning orders: Default and Frequency, each with its own saved learning progress.
-- Adaptive exercises that focus on a learner's weakest active letters and use only unlocked letters.
+- Adaptive exercises that use only unlocked letters and balance lifetime accuracy, recent performance and practice exposure.
+- A rolling 20-result history per letter to identify emerging weak keys and guide focus.
+- Per-letter feedback showing overall and recent accuracy while preserving the existing 12-attempt / 90%-accuracy unlock rule.
 - Adjustable exercise length from 24 to 48 words; changes apply immediately.
 - Optional on-screen QWERTY keyboard with finger-zone colours, home-row guides, locked-key dimming and next-key highlighting.
 - Live words-per-minute (WPM), accuracy and error statistics.
-- Progress tracking for completed sessions, personal-best speed, average accuracy and total practice time.
+- Progress tracking for completed sessions, personal-best speed, average accuracy and total active practice time, including unfinished exercises.
 - Configurable daily practice goal and a seven-day WPM history.
 - Light and dark themes, plus an inline settings panel.
 - Browser `localStorage` for settings, learning progress and statistics.
@@ -38,9 +40,9 @@ You can also open `index.html` directly in a modern browser, although using XAMP
 ## Development
 
 - The project uses vanilla HTML, CSS and JavaScript; no package installation or build step is currently required.
-- Make changes on a feature or working branch rather than directly on `main`.
-- Test the changed behaviour locally before opening or updating a pull request.
-- The `main` branch is the integration branch.
+- Use the repository's designated active branch and confirm the target before committing. For the current implementation, `main` is the active source of truth.
+- Test changed behaviour locally and review the complete diff before publishing changes.
+- Keep commits focused and avoid unrelated layout or dependency changes.
 
 ## Automated checks
 
@@ -50,7 +52,7 @@ GitHub Actions runs the **TypeFlow CI** workflow automatically:
 - When a pull request targeting `main` is opened or updated.
 - Manually through the **Actions** tab using **Run workflow**.
 
-The workflow checks JavaScript syntax with Node.js and confirms that the essential website files are present. It does not currently run browser-based or visual regression tests.
+The workflow checks JavaScript syntax, runs dependency-free Node.js regression tests for learning logic and confirms that the essential website files are present. Browser-based and visual regression tests are not currently included.
 
 To review a run, open the repository's **Actions** tab and select **TypeFlow CI**. A failed check should be investigated and fixed before merging the related pull request.
 
